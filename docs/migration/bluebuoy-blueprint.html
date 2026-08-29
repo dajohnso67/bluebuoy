@@ -1,0 +1,891 @@
+<title>Blue Buoy Migration Blueprint</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root {
+    --ground: #F5F8F8;
+    --surface: #FFFFFF;
+    --surface-sunk: #EDF3F3;
+    --ink: #10201F;
+    --ink-soft: #46605F;
+    --ink-faint: #6E8685;
+    --rule: #D6E1E0;
+    --rule-soft: #E6EDEC;
+    --accent: #0D6B72;
+    --accent-ink: #0A555B;
+    --accent-wash: #E0EFEF;
+    --open: #9A5B12;
+    --open-wash: #F7EBDA;
+    --assumed: #2C6E68;
+    --assumed-wash: #E2EFED;
+    --green: #2C6B4B;
+    --shadow: 0 1px 2px rgba(16, 32, 31, .05), 0 8px 24px -16px rgba(16, 32, 31, .25);
+
+    --f-display: "IBM Plex Sans Condensed", "Helvetica Neue", Arial, sans-serif;
+    --f-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0B1414;
+      --surface: #111D1D;
+      --surface-sunk: #162423;
+      --ink: #E8EFEE;
+      --ink-soft: #A6BCBA;
+      --ink-faint: #7C9391;
+      --rule: #243938;
+      --rule-soft: #1B2C2B;
+      --accent: #56B5B9;
+      --accent-ink: #7FCDD0;
+      --accent-wash: #16302F;
+      --open: #D9A05B;
+      --open-wash: #2E2416;
+      --assumed: #6FB8AF;
+      --assumed-wash: #16302D;
+      --green: #6BB48C;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -16px rgba(0, 0, 0, .8);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0B1414;
+    --surface: #111D1D;
+    --surface-sunk: #162423;
+    --ink: #E8EFEE;
+    --ink-soft: #A6BCBA;
+    --ink-faint: #7C9391;
+    --rule: #243938;
+    --rule-soft: #1B2C2B;
+    --accent: #56B5B9;
+    --accent-ink: #7FCDD0;
+    --accent-wash: #16302F;
+    --open: #D9A05B;
+    --open-wash: #2E2416;
+    --assumed: #6FB8AF;
+    --assumed-wash: #16302D;
+    --green: #6BB48C;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -16px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 28px 96px;
+  }
+
+  /* ---- masthead ---- */
+  .masthead {
+    padding: 72px 0 40px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 18px;
+  }
+  h1 {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: clamp(38px, 6vw, 60px);
+    line-height: 1.02;
+    letter-spacing: -.015em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h1 .sub {
+    display: block;
+    color: var(--ink-faint);
+    font-weight: 500;
+    font-size: clamp(19px, 2.6vw, 26px);
+    letter-spacing: 0;
+    margin-top: 10px;
+  }
+  .masthead .lede {
+    max-width: 62ch;
+    color: var(--ink-soft);
+    margin: 26px 0 0;
+  }
+  .sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    margin-top: 28px;
+    font-family: var(--f-mono);
+    font-size: 12.5px;
+    color: var(--ink-faint);
+  }
+  .sources b { color: var(--ink-soft); font-weight: 500; }
+
+  /* ---- layout ---- */
+  .frame { display: block; }
+  @media (min-width: 1040px) {
+    .frame {
+      display: grid;
+      grid-template-columns: 196px minmax(0, 1fr);
+      gap: 64px;
+      align-items: start;
+    }
+  }
+
+  nav.rail { display: none; }
+  @media (min-width: 1040px) {
+    nav.rail {
+      display: block;
+      position: sticky;
+      top: 40px;
+      padding-top: 56px;
+    }
+    nav.rail ol {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    nav.rail a {
+      display: flex;
+      gap: 10px;
+      padding: 7px 10px 7px 0;
+      font-family: var(--f-mono);
+      font-size: 12.5px;
+      line-height: 1.35;
+      color: var(--ink-faint);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      padding-left: 12px;
+      transition: color .15s, border-color .15s;
+    }
+    nav.rail a:hover { color: var(--accent); }
+    nav.rail a.on {
+      color: var(--ink);
+      border-left-color: var(--accent);
+    }
+    nav.rail a .n { color: var(--accent); }
+  }
+
+  main { min-width: 0; padding-top: 56px; }
+  section { scroll-margin-top: 32px; }
+  section + section { margin-top: 72px; }
+
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 32px;
+  }
+  .sec-head .n {
+    font-family: var(--f-mono);
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  h2 {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: clamp(25px, 3.4vw, 33px);
+    letter-spacing: -.01em;
+    line-height: 1.15;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: 21px;
+    letter-spacing: -.005em;
+    line-height: 1.25;
+    margin: 40px 0 12px;
+    text-wrap: balance;
+  }
+  h4 {
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 28px 0 10px;
+  }
+  p { margin: 0 0 16px; max-width: 68ch; }
+  main ul { max-width: 68ch; padding-left: 20px; margin: 0 0 16px; }
+  main li { margin-bottom: 7px; }
+  a { color: var(--accent-ink); }
+  code {
+    font-family: var(--f-mono);
+    font-size: .855em;
+    background: var(--surface-sunk);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--ink);
+  }
+  strong { font-weight: 600; }
+
+  /* ---- callout ---- */
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 22px 26px;
+    margin: 36px 0;
+    box-shadow: var(--shadow);
+  }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .move {
+    background: var(--accent-wash);
+    border-radius: 3px;
+    padding: 16px 20px;
+    margin: 18px 0 0;
+    max-width: 68ch;
+  }
+  .move p { margin: 0; }
+  .move .tag {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  /* ---- stats ---- */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 36px 0 0;
+  }
+  .stat { background: var(--surface); padding: 20px 22px; }
+  .stat .v {
+    font-family: var(--f-display);
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .k {
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    line-height: 1.4;
+    color: var(--ink-faint);
+    margin-top: 9px;
+  }
+  .stat.warn .v { color: var(--open); }
+
+  /* ---- bottleneck ---- */
+  .bottleneck { margin-top: 40px; }
+  .bottleneck .label {
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--open);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .bottleneck h3 { margin-top: 0; }
+
+  /* ---- tables ---- */
+  .tw { overflow-x: auto; margin: 20px 0 24px; border: 1px solid var(--rule); border-radius: 3px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+  th, td {
+    text-align: left;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--rule-soft);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  th {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+    background: var(--surface-sunk);
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.mono, td .mono { font-family: var(--f-mono); font-size: 13px; }
+  td.nw { white-space: nowrap; }
+
+  .chip {
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .chip.open { background: var(--open-wash); color: var(--open); }
+  .chip.assumed { background: var(--assumed-wash); color: var(--assumed); }
+  .method {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .06em;
+    color: var(--accent-ink);
+  }
+
+  /* ---- code ---- */
+  pre {
+    background: var(--surface-sunk);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 20px 0 24px;
+    font-family: var(--f-mono);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  pre .c { color: var(--ink-faint); }
+
+  /* ---- schema groups ---- */
+  .groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    margin: 24px 0;
+  }
+  .group {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 18px 20px 6px;
+  }
+  .group h5 {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 12px;
+    font-weight: 500;
+  }
+  .group ul { list-style: none; padding: 0; margin: 0 0 14px; }
+  .group li {
+    margin-bottom: 11px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .group li b {
+    font-family: var(--f-mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    display: block;
+  }
+
+  /* ---- state machine ---- */
+  .machine {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 22px 0 24px;
+    font-family: var(--f-mono);
+    font-size: 12.5px;
+  }
+  .machine .st {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 8px 13px;
+  }
+  .machine .st.last { border-color: var(--accent); color: var(--accent-ink); }
+  .machine .ar { color: var(--ink-faint); }
+
+  /* ---- phases ---- */
+  .phase {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 22px;
+    padding-top: 30px;
+  }
+  .phase + .phase { border-top: 1px solid var(--rule-soft); margin-top: 30px; }
+  .phase .num {
+    font-family: var(--f-display);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    padding-top: 2px;
+  }
+  .phase h3 { margin: 0 0 10px; }
+  .gate {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--green);
+    border-radius: 3px;
+    padding: 14px 18px;
+    margin-top: 16px;
+    max-width: 68ch;
+  }
+  .gate .tag {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--green);
+    display: block;
+    margin-bottom: 5px;
+  }
+  .gate p { margin: 0; font-size: 15.5px; }
+
+  footer {
+    margin-top: 88px;
+    padding-top: 26px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--f-mono);
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    line-height: 1.8;
+  }
+  footer b { color: var(--ink-soft); font-weight: 500; }
+
+  a:focus-visible, nav.rail a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; scroll-behavior: auto !important; }
+  }
+  html { scroll-behavior: smooth; }
+</style>
+
+<div class="shell">
+
+  <header class="masthead">
+    <p class="eyebrow">Migration Blueprint</p>
+    <h1>Blue Buoy<span class="sub">FileMaker Pro → Go web stack</span></h1>
+    <p class="lede">A structural blueprint and execution roadmap for replacing the swim school's FileMaker system — scheduling, billing, attendance — with Go and Chi, Templ, htmx with Alpine.js, Tailwind, and PostgreSQL.</p>
+    <div class="sources">
+      <span><b>Synthesised from</b> technical-prompt.md · qa.md · qa1-1.md</span>
+      <span><b>Repo</b> dajohnso67/bluebuoy</span>
+      <span><b>Source of truth</b> docs/migration/PLAN.md</span>
+    </div>
+  </header>
+
+  <div class="frame">
+
+    <nav class="rail" aria-label="Sections">
+      <ol>
+        <li><a href="#s1"><span class="n">1</span> Summary &amp; risk</a></li>
+        <li><a href="#s2"><span class="n">2</span> Schema mapping</a></li>
+        <li><a href="#s3"><span class="n">3</span> Logic migration</a></li>
+        <li><a href="#s4"><span class="n">4</span> API contract</a></li>
+        <li><a href="#s5"><span class="n">5</span> Roadmap</a></li>
+      </ol>
+    </nav>
+
+    <main>
+
+      <div class="callout">
+        <p><strong>Every answer in the discovery questionnaire is blank today.</strong> This blueprint is built on what the software analysis established. Wherever it rests on an unconfirmed reading, the register records the decision that answer blocks. Build on an assumption freely; confirm it before it prices anything.</p>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="v">98</div><div class="k">questions asked<br>of staff</div></div>
+        <div class="stat warn"><div class="v">0</div><div class="k">answered<br>so far</div></div>
+        <div class="stat"><div class="v">36</div><div class="k">build decisions<br>waiting on them</div></div>
+        <div class="stat warn"><div class="v">16</div><div class="k">with no working<br>assumption yet</div></div>
+      </div>
+
+      <section id="s1">
+        <div class="sec-head"><span class="n">01</span><h2>Executive Summary &amp; Risk Analysis</h2></div>
+
+        <p>FileMaker handles Blue Buoy's routine cases and hands the rest to staff. The migration's substance is therefore not porting features. It is absorbing the manual layer — month-end hand-corrections, an entire institutional billing business that never touched the database, and meaning encoded in typography — into a system that carries it.</p>
+        <p>All three bottlenecks are discovery or verification problems. None is a construction problem.</p>
+
+        <div class="bottleneck">
+          <span class="label">Bottleneck 01</span>
+          <h3>Fog: institutional billing has no digital trace</h3>
+          <p>Fourteen charter schools and nine Regional Center agencies exist in FileMaker as a text note telling staff how to bill. Everything downstream — authorizations, service documentation, invoicing, collection — happens in spreadsheets, email, and paper. It is simultaneously the largest greenfield subsystem and the least specified, and DDR analysis cannot reach it: a schema dump describes no process that never touched the schema.</p>
+          <div class="move">
+            <span class="tag">Move</span>
+            <p>Run institutional billing as its own discovery track from day one, and make its Phase 1 output <em>artifacts</em> rather than answers — one real charter invoice, one real service log, one real authorization letter, one month of whatever spreadsheet tracks it. Design begins when those land. Phase 4 is gated on them.</p>
+          </div>
+        </div>
+
+        <div class="bottleneck">
+          <span class="label">Bottleneck 02</span>
+          <h3>Money correctness has no clean oracle</h3>
+          <p>Today's month-end run is manual posting, manual proration, a spreadsheet cross-reference against the card processor, manual referral-credit resets, and a void-or-refund window. Because the outputs are the product of human correction, “match FileMaker” is not a trustworthy target: some of what it produced was wrong and staff caught it downstream — or didn't, as with a missed referral reset that silently keeps discounting a family.</p>
+          <div class="move">
+            <span class="tag">Move</span>
+            <p>Reconcile by <strong>shadow run</strong>. Price closed months in the new system, compare per household to the cent, and classify every difference as a bug to fix or a FileMaker error to record. The run is <strong>green</strong> when no unexplained difference remains. Green months, not feature completion, are what authorize cutover.</p>
+          </div>
+          <p style="margin-top:18px">The avoidable half of this risk is the card vault. Cards on file live with Authorize.Net; keeping that gateway carries them across intact. Changing gateways at cutover forces re-collecting every card from every family — the most damaging self-inflicted wound available to this project.</p>
+        </div>
+
+        <div class="bottleneck">
+          <span class="label">Bottleneck 03</span>
+          <h3>Capability regression in search and encoded meaning</h3>
+          <p>Deck Manager's ad-hoc find and its Saved Finds are the staff's power tool, and the questionnaire names the failure directly: replacing a capable search with a prettier, weaker one is how this kind of project goes wrong. Alongside it, real operational data lives in typography — ALL CAPS first names, colour highlights, note shorthand like <code>AUG PO</code> and <code>MU</code>. A straight import reads those as ordinary strings and the meaning evaporates silently, with nothing left to alert anyone.</p>
+          <div class="move">
+            <span class="tag">Move</span>
+            <p>Make search parity an acceptance gate in Phase 3, measured against the daily searches and Saved Finds that staff answers enumerate. Run a <strong>decode pass</strong> before import that converts each convention into typed data, and treat any convention still undecoded at import as a blocking defect.</p>
+          </div>
+        </div>
+
+        <h3>Concurrent locking is a solved case, not a bottleneck</h3>
+        <p>FileMaker's record locking becomes ordinary Postgres transactions plus two named invariants: an exclusion constraint making instructor double-booking impossible to commit, and a period-unique billing run making a double-charge impossible to commit. The database enforces both, rather than discipline, which is why neither earns a risk entry.</p>
+      </section>
+
+      <section id="s2">
+        <div class="sec-head"><span class="n">02</span><h2>Data Schema Mapping</h2></div>
+
+        <p>The trap is table occurrences. A FileMaker relationship graph carries dozens of occurrences over a handful of base tables; migrating occurrence-by-occurrence manufactures tables that were never entities.</p>
+
+        <div class="tw">
+          <table>
+            <thead><tr><th>FileMaker</th><th>Target</th></tr></thead>
+            <tbody>
+              <tr><td class="nw">Table occurrence</td><td>Not a table. Collapse to its base table; the occurrence's path becomes an explicit foreign key or join</td></tr>
+              <tr><td class="nw">Base table</td><td>Table, normalized</td></tr>
+              <tr><td class="nw">Portal</td><td>Child rows over a foreign key, rendered as an htmx fragment</td></tr>
+              <tr><td class="nw">Global field</td><td>Request or session state, or a <code>setting</code> row. Never a column</td></tr>
+              <tr><td class="nw">Stored calculation</td><td>Generated column, or a view where it spans rows</td></tr>
+              <tr><td class="nw">Unstored calculation</td><td>Computed in the service layer at read</td></tr>
+              <tr><td class="nw">Auto-enter calculation</td><td>Column default, or resolved by the service on write. Prices resolve once and persist as a snapshot</td></tr>
+              <tr><td class="nw">Repeating field</td><td>Child table rows</td></tr>
+              <tr><td class="nw">Value list</td><td>Lookup table plus a foreign key</td></tr>
+              <tr><td class="nw">Container field</td><td>Object storage key on a <code>document</code> row</td></tr>
+              <tr><td class="nw">Script trigger</td><td>Domain event, handled in the service</td></tr>
+              <tr><td class="nw">Server-scheduled script</td><td>Cron job holding an advisory lock, idempotent on its period key</td></tr>
+              <tr><td class="nw">Saved Find</td><td><code>saved_search</code> row holding structured criteria</td></tr>
+              <tr><td class="nw">Record lock</td><td>Transaction, plus the two invariants below</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Core schema</h3>
+        <p>The brief's four entities map onto Blue Buoy as: <strong>Customers</strong> → <code>household</code> and <code>person</code>; <strong>Schedules/Appointments</strong> → <code>slot</code>, <code>enrollment</code>, and <code>lesson</code>; <strong>Line Items</strong> → <code>invoice_line</code>; <strong>Invoices</strong> → <code>invoice</code>.</p>
+
+        <div class="groups">
+          <div class="group">
+            <h5>Identity</h5>
+            <ul>
+              <li><b>household</b>The billing family unit. Siblings share one.</li>
+              <li><b>person</b>One row per human — name, contact, date of birth.</li>
+              <li><b>household_member</b>Role: student, guardian, billing contact. An adult student holds two roles rather than occupying two records.</li>
+              <li><b>student_profile</b>Level and status. Swim-specific attributes only.</li>
+              <li><b>instructor</b>Employment status.</li>
+            </ul>
+          </div>
+          <div class="group">
+            <h5>Catalog &amp; pricing</h5>
+            <ul>
+              <li><b>class_type · level</b>Lookup tables replacing value lists.</li>
+              <li><b>eligibility_rule</b>Age and level bars as data, so a confirmed answer lands as a row rather than a deploy.</li>
+              <li><b>eligibility_override</b>Reason and authorizer. Exceptions stay possible and visible.</li>
+              <li><b>price</b>Effective-dated, so the annual increase is a new row and history survives.</li>
+              <li><b>discount_step</b>The ordered sibling ladder and its cap, as rows.</li>
+            </ul>
+          </div>
+          <div class="group">
+            <h5>Scheduling</h5>
+            <ul>
+              <li><b>slot</b>Instructor, weekday, time, class type, capacity. The recurring place a family holds.</li>
+              <li><b>enrollment</b>A student's claim on a slot. The billable relationship.</li>
+              <li><b>lesson</b>One dated occurrence, held as a time range.</li>
+              <li><b>attendance</b>Status, who marked it, which device, and a client UUID that makes offline replay safe.</li>
+              <li><b>closure</b>Date range, reason, and whether it issues credit.</li>
+              <li><b>waitlist_entry</b>Desired class type and the availability the family stated.</li>
+            </ul>
+          </div>
+          <div class="group">
+            <h5>Money</h5>
+            <ul>
+              <li><b>payer</b>Household, charter school, or Regional Center agency. The 14 and the 9 become rows, not a note.</li>
+              <li><b>payer_assignment</b>Per student, so siblings on different payers is the normal case.</li>
+              <li><b>authorization</b>Lesson or dollar cap with an expiry. Teaching past it becomes visible before it becomes unpaid work.</li>
+              <li><b>price_agreement</b>The rate this enrollment pays, its reason, and the dates it holds.</li>
+              <li><b>invoice · invoice_line</b>Line unit amounts are snapshots: reprinting a two-year-old invoice reproduces it exactly.</li>
+              <li><b>credit · credit_application</b>The ledger. A balance is a query, never a field.</li>
+              <li><b>payment</b>No cap on payments per month.</li>
+              <li><b>billing_run · exception</b>The queue that replaces the spreadsheet cross-reference.</li>
+            </ul>
+          </div>
+          <div class="group">
+            <h5>Flags, notes, documents</h5>
+            <ul>
+              <li><b>flag</b>Allergy, support need, swim diaper, account handling. Typed data replacing typography.</li>
+              <li><b>note</b>Explicit audience: office, instructor, or both.</li>
+              <li><b>document</b>Invoice PDFs, service logs, intake forms. Container fields and the institutional paper trail land here.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Two invariants the database enforces</h3>
+<pre><code><span class="c">-- An instructor cannot be committed to two overlapping lessons.</span>
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+ALTER TABLE lesson ADD CONSTRAINT lesson_instructor_no_overlap
+  EXCLUDE USING gist (instructor_id WITH =, during WITH &amp;&amp;)
+  WHERE (status &lt;&gt; 'cancelled');
+
+<span class="c">-- A period can be committed exactly once.</span>
+CREATE UNIQUE INDEX billing_run_one_commit_per_period
+  ON billing_run (period) WHERE mode = 'committed';</code></pre>
+
+        <h3>Three modelling decisions that retire manual work</h3>
+        <p>Each replaces a recurring month-end task rather than reimplementing it.</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Today</th><th>Model</th><th>What stops happening</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Prices rise in January, the system applies the new rate to prepaid families anyway, and staff back out the difference every month afterwards</td>
+                <td><code>price_agreement</code> holds the locked rate with its own dates; <code>invoice_line</code> snapshots what it resolved</td>
+                <td>The monthly back-out, and the month somebody forgets</td>
+              </tr>
+              <tr>
+                <td>A referral credit is a state someone must remember to clear next month; a missed reset discounts a family indefinitely with nothing flagging it</td>
+                <td>A <code>credit</code> row valid for exactly one period, consumed by application and expired by date</td>
+                <td>The reset step, and the silent over-discount</td>
+              </tr>
+              <tr>
+                <td>Make-up credits accumulate invisibly — one student holds 28 unused private credits</td>
+                <td>The ledger makes balances queryable and expiry a policy field</td>
+                <td>The surprise, and the unused-credit report comes free</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p><strong>The first row carries a finding the current questionnaire dropped.</strong> FileMaker materializes billing months ahead of time, and a price change never reaches the rows it already created — while months created <em>after</em> the change take the new rate even for a family holding a locked prepay rate. Staff therefore correct in both directions, for opposite reasons, and the two corrections look nothing alike from the desk.</p>
+        <p>The new model materializes nothing ahead of issue. A future month has no row; the billing run prices it from the enrollment and its price agreement when the period arrives, and the invoice line snapshots the result at issue. Both corrections disappear along with the rows that required them.</p>
+      </section>
+
+      <section id="s3">
+        <div class="sec-head"><span class="n">03</span><h2>Logic &amp; Script Migration Strategy</h2></div>
+
+        <h3>Calculations</h3>
+        <p>Sort every FileMaker calculation by what it is for, because the three kinds land in different places:</p>
+        <ul>
+          <li><strong>Presentational</strong> — a display name, a formatted total. Computed in the Templ template; nothing persists.</li>
+          <li><strong>Derived and cheap</strong> — age from date of birth, a line total. A generated column, or computed at read.</li>
+          <li><strong>Monetary and decided</strong> — the rate this enrollment pays. Resolved once by the pricing service and persisted.</li>
+        </ul>
+        <p>That last reclassification is the important one. FileMaker recomputes a price whenever anyone looks, which is precisely why a January price rise reaches families who locked last year's rate. A resolved price is a fact about an agreement, not a lookup.</p>
+
+        <h3>Script triggers become domain events</h3>
+        <p>Each trigger becomes a named event the service publishes and handlers subscribe to, so one action can drive several consequences without any of them living inside a UI layout.</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Event</th><th>Handlers</th></tr></thead>
+            <tbody>
+              <tr><td class="mono nw">enrollment.created</td><td>Resolve price agreement, apply sibling step, check eligibility and capacity</td></tr>
+              <tr><td class="mono nw">enrollment.changed</td><td>Close the outgoing price agreement, open the incoming one, mark the period for proration</td></tr>
+              <tr><td class="mono nw">lesson.cancelled</td><td>Issue a make-up credit where policy calls for one, notify the family</td></tr>
+              <tr><td class="mono nw">closure.declared</td><td>Cancel every lesson in range, issue credits where the closure carries them, send the bulk notice</td></tr>
+              <tr><td class="mono nw">attendance.marked</td><td>Consume an authorization unit, advance progression signals</td></tr>
+              <tr><td class="mono nw">invoice.issued</td><td>Render the PDF, attach it to the payer, start the terms clock</td></tr>
+              <tr><td class="mono nw">payment.failed</td><td>Raise an exception, notify the office, flag the card</td></tr>
+              <tr><td class="mono nw">authorization.nearing_limit</td><td>Alert the office before the cap is passed rather than after</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Scheduled server scripts become cron jobs</h3>
+        <p>Each holds a Postgres advisory lock and is idempotent on its period key, so a retry, an overlap, or two instances racing produce one outcome.</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Job</th><th>Cadence</th><th>Does</th></tr></thead>
+            <tbody>
+              <tr><td class="nw">Billing run</td><td class="mono nw">Monthly</td><td>Prices active enrollments, raises exceptions, issues invoices on commit</td></tr>
+              <tr><td class="nw">Credit expiry sweep</td><td class="mono nw">Nightly</td><td>Expires credits past their validity, which is what retires the manual referral reset</td></tr>
+              <tr><td class="nw">Authorization check</td><td class="mono nw">Nightly</td><td>Flags institutional authorizations near their cap or expiry</td></tr>
+              <tr><td class="nw">Card expiry notice</td><td class="mono nw">Weekly</td><td>Surfaces cards on file about to lapse, ahead of a failed charge</td></tr>
+              <tr><td class="nw">Lesson materialization</td><td class="mono nw">Nightly</td><td>Extends lesson rows from slot definitions across the rolling window</td></tr>
+              <tr><td class="nw">Progression signals</td><td class="mono nw">Weekly</td><td>Feeds the attrition and level-progression reports, all of them queries over the model above</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>The billing run is a state machine, not a script</h3>
+        <div class="machine">
+          <span class="st">draft</span><span class="ar">→</span>
+          <span class="st">priced</span><span class="ar">→</span>
+          <span class="st">exceptions cleared</span><span class="ar">→</span>
+          <span class="st last">committed</span>
+        </div>
+        <p>It prices every active enrollment, and any household it cannot price cleanly becomes an exception rather than a silent guess: an unresolved mid-month change, a prepaid family whose lock expired, a card that failed last period, an institutional student past their authorization. Staff clear the queue; commit is available once it is empty. The same machine runs in shadow mode against closed months, producing a comparison instead of invoices.</p>
+        <p>The month-end work becomes clearing a short exception list rather than performing the whole run by hand.</p>
+
+        <h3>Rules live as data</h3>
+        <p>Eligibility bars, sibling discount steps, prepay tiers, closure credit policy, and cancellation cutoffs are rows, not code. Staff answers arrive as configuration a staff member can change, and each carries an effective date, so changing a rule leaves last year's invoices reproducible.</p>
+      </section>
+
+      <section id="s4">
+        <div class="sec-head"><span class="n">04</span><h2>API Contract &amp; Integration Outline</h2></div>
+
+        <h3>Two surfaces, and no GraphQL</h3>
+        <p>htmx wants HTML. The application's own screens are Templ fragments served straight from Chi handlers — no JSON round-trip, no client state to keep in sync. A separate, small JSON API serves the one client that genuinely needs data rather than markup: the pool-deck iPad taking attendance offline. GraphQL earns nothing here; it would add a schema layer for a single first-party consumer with a known access pattern.</p>
+
+        <h3>Scheduling conflict check</h3>
+        <p>One endpoint answers every “can this student take this slot” question — booking, waitlist matching, and drag-and-drop rescheduling all call it — so the rules have a single home.</p>
+<pre><code>POST /api/v1/schedule/check
+{ "student_id": "...", "slot_id": "...", "starts_on": "2026-09-08" }
+
+200 OK
+{
+  "bookable": false,
+  "conflicts": [
+    { "code": "instructor_busy",   "detail": "Overlaps 4:15pm private" },
+    { "code": "capacity_full",     "detail": "3 of 3 enrolled" },
+    { "code": "student_double",    "detail": "Already enrolled 4:00pm Tue" },
+    { "code": "eligibility_unmet", "detail": "Group needs level 8, student at 6",
+      "overridable": true },
+    { "code": "closure",           "detail": "Pool closed Dec 22 – Jan 5" }
+  ]
+}</code></pre>
+        <p><code>overridable</code> is what keeps the office in charge: the system states the bar and who may pass it, and staff decide.</p>
+
+        <div class="tw">
+          <table>
+            <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td class="method">POST</td><td class="mono nw">/api/v1/schedule/check</td><td>Conflict and eligibility check</td></tr>
+              <tr><td class="method">POST</td><td class="mono nw">/api/v1/enrollments</td><td>Book a slot. 409 on conflict, constraint-backed</td></tr>
+              <tr><td class="method">GET</td><td class="mono nw">/api/v1/slots/{id}/waitlist-matches</td><td>Ranked candidates for an opening</td></tr>
+              <tr><td class="method">POST</td><td class="mono nw">/api/v1/attendance:batch</td><td>Offline roll sync, idempotent on client UUID</td></tr>
+              <tr><td class="method">POST</td><td class="mono nw">/api/v1/closures</td><td>Declare a closure, cancelling and crediting in one action</td></tr>
+              <tr><td class="method">POST</td><td class="mono nw">/api/v1/billing/runs</td><td>Start a run in a given mode. 202 with a run id</td></tr>
+              <tr><td class="method">GET</td><td class="mono nw">/api/v1/billing/runs/{id}</td><td>State, totals, exception list</td></tr>
+              <tr><td class="method">POST</td><td class="mono nw">/api/v1/billing/runs/{id}/commit</td><td>Issue invoices. Available on an empty exception queue</td></tr>
+              <tr><td class="method">GET</td><td class="mono nw">/api/v1/invoices/{id}.pdf</td><td>Rendered invoice</td></tr>
+              <tr><td class="method">POST</td><td class="mono nw">/api/v1/invoices/{id}/void</td><td>Void inside the window</td></tr>
+              <tr><td class="method">GET</td><td class="mono nw">/api/v1/payers/{id}/authorizations</td><td>Authorized, consumed, remaining, expiring</td></tr>
+              <tr><td class="method">POST</td><td class="mono nw">/api/v1/payers/{id}/invoice-packets</td><td>Institutional packet: invoice plus service logs</td></tr>
+              <tr><td class="method">GET</td><td class="mono nw">/api/v1/students/{id}/credits</td><td>Credit ledger and balance</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Integrations</h3>
+        <ul>
+          <li><strong>Authorize.Net</strong> — kept, with Customer Information Manager holding the card vault so cards survive cutover. Enable Account Updater, which appears to be off and which turns a failed charge into a silent refresh.</li>
+          <li><strong>SMS</strong> — replaces fmSMS. Inbound replies need a destination.</li>
+          <li><strong>PDF</strong> — server-side rendering of invoices and service logs, stored as documents.</li>
+          <li><strong>Object storage</strong> — S3-compatible, holding what FileMaker container fields held plus institutional documentation.</li>
+        </ul>
+      </section>
+
+      <section id="s5">
+        <div class="sec-head"><span class="n">05</span><h2>Phased Execution Roadmap</h2></div>
+        <p>Each phase ends on a gate. A gate is checkable and exhaustive by design: passing it is an observation, not a judgement.</p>
+
+        <div class="phase">
+          <div class="num">1</div>
+          <div>
+            <h3>Data extraction &amp; DDR analysis</h3>
+            <p>Run the Database Design Report to inventory base tables, table occurrences, calculations, scripts, and value lists. In parallel, and on the critical path, run the two discovery tracks the DDR cannot serve: <strong>archaeology</strong> for the institutional business, collecting the four real artifacts, and the <strong>decode pass</strong> that turns every typographic convention into a documented rule. Get the questionnaire back — the account question, the sibling discount, and the eligibility bars gate the schema; the charter and Regional Center answers gate the largest subsystem.</p>
+            <div class="gate"><span class="tag">Gate</span><p>Every FileMaker base table appears in the mapping with a target or a recorded reason for dropping it; every question carries a state in the register; the four institutional artifacts are in hand; no undecoded convention remains.</p></div>
+          </div>
+        </div>
+
+        <div class="phase">
+          <div class="num">2</div>
+          <div>
+            <h3>Core backend &amp; database</h3>
+            <p>Build the schema, the Go service layer over it, and the import. The import runs repeatedly and non-destructively until it reconciles, with the decode pass feeding typed flags rather than raw strings.</p>
+            <p>FileMaker's pre-created future billing months need a decision of their own before the import runs. They are not history, they are pre-materialized future state, and some hold prices that went stale the day the price list changed. Import them as invoices and the staleness crosses into the new system wearing the authority of a record. Import them as what they are — a queue of intentions — and they become enrollments the billing run will price when each period arrives.</p>
+            <div class="gate"><span class="tag">Gate</span><p>Household, student, enrollment, and open-credit counts match FileMaker exactly; ten sampled households match field by field, including flags and notes; and every future-dated billing month is accounted for as either an enrollment or a discard with a reason.</p></div>
+          </div>
+        </div>
+
+        <div class="phase">
+          <div class="num">3</div>
+          <div>
+            <h3>Scheduler UI</h3>
+            <p>The deck view, enrollment, waitlist, closures, attendance, and search. Search is the phase's centre of gravity, not a feature within it: a saved-search model plus a criteria builder reaching every field staff currently search, seeded with the Saved Finds they name. Attendance ships as an offline-capable PWA with a PIN at shift start and instant, password-free switching between instructor schedules.</p>
+            <div class="gate"><span class="tag">Gate</span><p>Every search staff named returns the same set as FileMaker on the same data, and deck staff run one full week of real scheduling in the new UI alongside the old.</p></div>
+          </div>
+        </div>
+
+        <div class="phase">
+          <div class="num">4</div>
+          <div>
+            <h3>Billing &amp; PDF generation</h3>
+            <p>The billing run state machine, pricing, credits, proration, invoice and service-log PDFs, the Authorize.Net integration, and the institutional subsystem the archaeology defined. Dry runs only; nothing charges a card.</p>
+            <div class="gate"><span class="tag">Gate</span><p>A dry run of the last closed month reproduces every FileMaker invoice to the cent, or names the difference and its cause.</p></div>
+          </div>
+        </div>
+
+        <div class="phase">
+          <div class="num">5</div>
+          <div>
+            <h3>Parallel run &amp; cutover</h3>
+            <p>Shadow runs monthly against live data while FileMaker stays the system of record. Differences resolve into fixed bugs or recorded FileMaker errors. Staff work both systems for scheduling and attendance; billing commits in one place only.</p>
+            <div class="gate"><span class="tag">Gate</span><p>Three consecutive shadow months land green.</p></div>
+            <p style="margin-top:20px"><strong>Cutover:</strong> freeze FileMaker writes, run the final import, verify counts, point the gateway at the new system, and keep FileMaker readable for a year. The card vault stays where it is, so no family is asked for a card.</p>
+            <p><strong>Rollback:</strong> available until the first committed billing run in the new system. Past that point, FileMaker no longer holds the month, and recovery is forward — which is why three green months, and not two, is the bar.</p>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <div><b>docs/migration/PLAN.md</b> — this blueprint, and the source of truth for it</div>
+        <div><b>docs/migration/open-questions.md</b> — the decision each unanswered question blocks</div>
+        <div><b>CONTEXT.md</b> — domain vocabulary</div>
+        <div><b>qa.md</b> — the staff questionnaire, awaiting answers</div>
+      </footer>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('nav.rail a'));
+    if (!links.length || !('IntersectionObserver' in window)) return;
+    var map = {};
+    links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
+    var seen = {};
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { seen[e.target.id] = e.isIntersecting; });
+      var current = null;
+      Object.keys(map).forEach(function (id) { if (seen[id] && !current) current = id; });
+      links.forEach(function (a) { a.classList.remove('on'); });
+      if (current && map[current]) map[current].classList.add('on');
+    }, { rootMargin: '-10% 0px -70% 0px' });
+    Object.keys(map).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) obs.observe(el);
+    });
+  })();
+</script>
