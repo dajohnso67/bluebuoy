@@ -18,7 +18,7 @@ All three bottlenecks are discovery or verification problems. None is a construc
 
 Fourteen charter schools and nine Regional Center agencies exist in FileMaker as a text note telling staff how to bill. Everything downstream happens in QuickBooks, Excel, email, and paper (qa.md Q4–Q13). The fog has since partially lifted: the context package (2.9, **Confirmed** with the billing team) documents the workflow — rates negotiated each July, deliberately above the auto-pay rate; families obtain their own funding and purchase orders, with **no authorization balance visible to Blue Buoy**; month-end invoicing by email/paper or through each school's own portal; payment a month or more later; **no supporting documentation required to release payment**; and the entire receivables trail living as free-text notes (`JAN 11237 $368`, `CK 7499`). What remains foggy: the two portal submission workflows (never examined), the QuickBooks handoff, and how the AR trail gets structured.
 
-**Move:** the discovery track narrows to what's still dark — one real charter invoice, the tracking spreadsheet or QuickBooks view, and a walkthrough of each portal. The service log and authorization letter drop off the artifact list: both are now confirmed not to exist. Design of the payer subsystem is a live decision ticket on the wayfinder map (issue #4); the Institutional payers phase is gated on it and the remaining artifacts.
+**Move:** the discovery track narrows to what's still dark — one real charter invoice, the tracking spreadsheet or QuickBooks view, and a walkthrough of each portal. The service log and authorization letter drop off the artifact list: both are now confirmed not to exist. The payer subsystem is decided — [ADR-0002](../adr/0002-no-authorization-balance-tracking.md), no authorization balance tracking (§2) — and the Institutional payers phase is gated on the remaining artifacts.
 
 ### Bottleneck 2 — Money correctness has no clean oracle
 
@@ -79,7 +79,7 @@ The brief's four entities map onto Blue Buoy as: **Customers** → `household` a
 - `eligibility_rule` — `class_type_id`, `min_age`, `min_level`, `effective_from`. Rules as data, so a confirmed answer to Q60–Q63 lands as a row rather than a deploy.
 - `eligibility_override` — `student_id`, `class_type_id`, reason, `authorized_by`. Exceptions stay possible and visible.
 - `price` — `class_type_id`, cadence, amount, `effective_from`, `effective_to`. Effective-dated, so the annual increase is a new row and history survives.
-- `discount_step` — the ordered sibling ladder and its cap, as rows.
+- `discount_step` — the ordered sibling ladder and its cap, as rows. Tier assignment order is staff-controllable per household: the confirmed strategy places an institutionally-funded child in the undiscounted first tier so the out-of-pocket sibling gets the discount.
 
 **Scheduling**
 
@@ -92,26 +92,27 @@ The brief's four entities map onto Blue Buoy as: **Customers** → `household` a
 
 **Money**
 
-- `payer` — type (`household`, `charter_school`, `regional_center`), name, terms. The 14 and the 9 become rows, not a note.
-- `payer_assignment` — `student_id`, `payer_id`, share, date range. Siblings on different payers, which Q11 asks about, becomes the normal case rather than an exception.
-- `authorization` — `payer_id`, `student_id`, `lessons_authorized`, `dollars_authorized`, `starts_on`, `expires_on`. Consumption is a query against it, so teaching past a cap becomes visible before it becomes unpaid work.
+- `payer` — type (`household`, `charter_school`, `regional_center`), name, terms, submission method (`invoice_email`, `invoice_paper`, `portal`, `direct_check`), billing contact. The 14 and the 9 become rows, not a note.
+- `payer_assignment` — `student_id`, `payer_id`, share, date range, plus the student's identity with that agency: UCI number and coordinator contact, structured and restricted to billing/management roles. Siblings on different payers, which Q11 confirmed, is the normal case rather than an exception.
+- `funding_reference` — `payer_id`, `student_id`, kind (`purchase_order`, `contract`), reference number, optional validity range, notes. Not a balance: per ADR-0002 there is no cap to consume — *absence for a billing period* is what surfaces, as a `billing_run_exception` and a coverage-view line. Validity granularity refines when the institutional artifacts land.
 - `price_agreement` — `enrollment_id`, amount, source (`list`, `sibling`, `prepay_lock`, `negotiated`), reason, date range.
-- `invoice` — `payer_id`, period, `issued_at`, status, total.
+- `invoice` — `payer_id`, period, `issued_at`, status (`draft`, `submitted`, `partially_paid`, `paid`, `void`), `submitted_at`, submission method snapshot, total. Receivables aging is a query over open invoices by age.
 - `invoice_line` — `invoice_id`, `student_id`, `enrollment_id`, description, quantity, `unit_amount`, amount. `unit_amount` is a snapshot: reprinting a two-year-old invoice reproduces it exactly.
 - `credit` — subject, kind (`makeup`, `referral`, `gift`, `courtesy`, `account`), amount or count, `valid_from`, `valid_to`, reason, `issued_by`.
 - `credit_application` — `credit_id`, target line or lesson, `applied_at`. Credit and application together form the ledger; a balance is a query, never a field.
-- `payment` — `payer_id`, amount, method, `gateway_txn_id`, `received_at`, `settled_at`. No cap on payments per month.
+- `payment` — `payer_id`, amount, method, reference (check number, gateway txn id), `received_at`, `settled_at`. No cap on payments per month.
+- `payment_application` — `payment_id`, `invoice_id`, amount. One institutional check settling several students' invoices is the normal case.
 - `adjustment` — `invoice_id`, amount, `reason_code`, `created_by`. For genuine one-offs, once the routine cases stop needing one.
 - `billing_run` — period, mode (`dry_run`, `shadow`, `committed`), state, timestamps.
-- `billing_run_exception` — `run_id`, `household_id`, code, detail. The queue that replaces the spreadsheet cross-reference.
+- `billing_run_exception` — `run_id`, `household_id`, code, detail. The queue that replaces the spreadsheet cross-reference — including the code for an institutional student with no funding reference for the period, which retires the month-end phone-around.
 
-> **Correction pending — wayfinder ticket #4.** The context package (2.9, **Confirmed**) contradicts the `authorization` model above: charter and Regional Center funding is held by the *family*; Blue Buoy has no visibility into balances or caps, so there is no consumption to track and nothing to warn against. The confirmed needs are a month-end "enrolled institutional students with no purchase order yet" prompt and per-payer receivables aging. Until that ticket lands, treat as up-for-redesign and **do not build**: the `authorization` table, the `attendance.marked` consumption handler and `authorization.nearing_limit` event (§3), the nightly authorization check (§3), the `GET /api/v1/payers/{id}/authorizations` endpoint (§4), and the service-log half of invoice packets (§4) — service logs are Confirmed unnecessary to release payment (qa.md Q12).
+> The institutional model above is [ADR-0002](../adr/0002-no-authorization-balance-tracking.md): **no authorization balance tracking** — the earlier cap-consumption design was a corrected over-design (package 2.9, Confirmed). QuickBooks stays the accounting system; the app reconciles with it. Service logs are gone from the model entirely: no payer requires documentation to release payment (qa.md Q12).
 
 **Flags, notes, documents**
 
 - `flag` — `student_id`, kind (`allergy`, `support_need`, `swim_diaper`, `account_handling`), severity, detail. Typed data replacing typography.
 - `note` — subject, body, audience (`office`, `instructor`, `all`), author, `created_at`.
-- `document` — kind (`invoice_pdf`, `service_log`, `intake_form`), storage key, subject. Container fields and the institutional paper trail land here.
+- `document` — kind (`invoice_pdf`, `intake_form`), storage key, subject. Container fields and the institutional paper trail land here.
 
 ### Two invariants the database enforces
 
@@ -161,10 +162,9 @@ Each trigger becomes a named event the service publishes and handlers subscribe 
 | `enrollment.changed` | Close the outgoing price agreement, open the incoming one, mark the period for proration |
 | `lesson.cancelled` | Issue a make-up credit where policy calls for one, notify the family |
 | `closure.declared` | Cancel every lesson in range, issue credits where `issues_credit` holds, send the bulk notice |
-| `attendance.marked` | Consume an authorization unit, advance progression signals |
+| `attendance.marked` | Advance progression signals, feed the coverage view |
 | `invoice.issued` | Render the PDF, attach it to the payer, start the terms clock |
 | `payment.failed` | Raise an exception, notify the office, flag the card |
-| `authorization.nearing_limit` | Alert the office before the cap is passed rather than after |
 
 ### Scheduled server scripts become cron jobs
 
@@ -174,14 +174,13 @@ Each holds a Postgres advisory lock and is idempotent on its period key, so a re
 | --- | --- | --- |
 | Billing run | Monthly | Prices active enrollments, raises exceptions, issues invoices on commit |
 | Credit expiry sweep | Nightly | Expires credits past `valid_to`, which is what retires the manual referral reset |
-| Authorization check | Nightly | Flags institutional authorizations near their cap or expiry |
 | Card expiry notice | Weekly | Surfaces cards on file about to lapse, ahead of a failed charge |
 | Lesson materialization | Nightly | Extends `lesson` rows from `slot` definitions across the rolling window |
 | Progression and attrition signals | Weekly | Feeds the Part 3 reports, all of them queries over the model above |
 
 ### The billing run is a state machine, not a script
 
-`draft → priced → exceptions_cleared → committed`. It prices every active enrollment, and any household it cannot price cleanly becomes a `billing_run_exception` rather than a silent guess: an unresolved mid-month change, a prepaid family whose lock expired, a card that failed last period, an institutional student past their authorization. Staff clear the queue; commit is available once it is empty. The same machine runs in `shadow` mode against closed months, producing a comparison instead of invoices.
+`draft → priced → exceptions_cleared → committed`. It prices every active enrollment, and any household it cannot price cleanly becomes a `billing_run_exception` rather than a silent guess: an unresolved mid-month change, a prepaid family whose lock expired, a card that failed last period, an institutional student with no funding reference for the period. Staff clear the queue; commit is available once it is empty. The same machine runs in `shadow` mode against closed months, producing a comparison instead of invoices.
 
 This is the design answer to Q24–Q34. The month-end work becomes clearing a short exception list rather than performing the whole run by hand.
 
@@ -232,15 +231,15 @@ POST /api/v1/schedule/check
 | `POST` | `/api/v1/billing/runs/{id}/commit` | Issue invoices. Available on an empty exception queue |
 | `GET` | `/api/v1/invoices/{id}.pdf` | Rendered invoice |
 | `POST` | `/api/v1/invoices/{id}/void` | Void inside the window (Q33) |
-| `GET` | `/api/v1/payers/{id}/authorizations` | Authorized, consumed, remaining, expiring |
-| `POST` | `/api/v1/payers/{id}/invoice-packets` | Institutional packet: invoice plus service logs for a period |
+| `GET` | `/api/v1/payers/{id}/receivables` | Open invoices aged: outstanding, per payer, for how long |
+| `POST` | `/api/v1/payers/{id}/invoices` | Month-end institutional invoice batch for a period |
 | `GET` | `/api/v1/students/{id}/credits` | Credit ledger and balance |
 
 ### Integrations
 
 - **Authorize.Net** — kept, with Customer Information Manager holding the card vault so cards survive cutover. Enable Account Updater, which Q39 suggests is off and which turns a failed charge into a silent refresh.
 - **SMS** — replaces fmSMS. Inbound replies need a destination, which Q74 decides.
-- **PDF** — server-side rendering of invoices and service logs, stored as `document` rows.
+- **PDF** — server-side rendering of invoices, stored as `document` rows.
 - **Object storage** — S3-compatible, holding what FileMaker container fields held plus institutional documentation.
 
 ## 5. Phased Execution Roadmap

@@ -29,7 +29,7 @@ Seeded from the FileMaker analysis and [`qa.md`](./qa.md). Terms marked **open**
 ## Money
 
 - **Payer** — whoever the invoice goes to: a household, one of 14 charter schools, or one of 9 Regional Center agencies. A household's children can have different payers (qa.md Q11).
-- **Authorization** — an institutional payer's commitment to fund a student: a lesson count or dollar cap, with an expiry. Lessons past it are unpaid work (qa.md Q6–Q7).
+- **Funding reference** — the family-obtained funding a student's institutional invoicing cites: a charter-school **PO** (the staff term) or a Regional Center contract. A reference number and kind, not a balance — Blue Buoy has no visibility into amounts or caps ([ADR-0002](./docs/adr/0002-no-authorization-balance-tracking.md)); its *absence* for a billing period is what surfaces as an exception (qa.md Q6–Q7, answered).
 - **Price agreement** — the rate a given enrollment is actually charged, with its reason (list price, sibling step, prepay lock, negotiated institutional rate) and the dates it holds. The record that makes a locked prepay rate survive a price rise without monthly hand-correction.
 - **Snapshot price** — the amount resolved onto an invoice line at issue. Reprinting an old invoice reproduces it exactly, because nothing recomputes.
 - **Credit ledger** — the append-only record of credits issued and consumed: make-up, referral, gift certificate, courtesy, account. A balance is a query over it, never a field someone must remember to reset.

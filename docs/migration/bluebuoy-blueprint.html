@@ -536,7 +536,7 @@
           <p>Fourteen charter schools and nine Regional Center agencies exist in FileMaker as a text note telling staff how to bill. Everything downstream happens in QuickBooks, Excel, email, and paper. The fog has since partially lifted: the billing team has confirmed the workflow — rates negotiated each July, deliberately above the auto-pay rate; families obtain their own funding and purchase orders, with <strong>no authorization balance visible to Blue Buoy</strong>; month-end invoicing by email/paper or through each school's own portal; payment a month or more later; <strong>no supporting documentation required to release payment</strong>; and the entire receivables trail living as free-text notes (<code>JAN 11237 $368</code>, <code>CK 7499</code>). Still dark: the two portal submission workflows, the QuickBooks handoff, and how the receivables trail gets structured.</p>
           <div class="move">
             <span class="tag">Move</span>
-            <p>The discovery track narrows to what's still dark — one real charter invoice, the tracking spreadsheet or QuickBooks view, and a walkthrough of each portal. The service log and authorization letter drop off the artifact list: both are now confirmed not to exist. Design of the payer subsystem is a live decision ticket on the planning map; the Institutional payers phase is gated on it and the remaining artifacts.</p>
+            <p>The discovery track narrows to what's still dark — one real charter invoice, the tracking spreadsheet or QuickBooks view, and a walkthrough of each portal. The service log and authorization letter drop off the artifact list: both are now confirmed not to exist. The payer subsystem is decided — ADR-0002, no authorization balance tracking — and the Institutional payers phase is gated on the remaining artifacts.</p>
           </div>
         </div>
 
@@ -632,7 +632,8 @@
             <ul>
               <li><b>payer</b>Household, charter school, or Regional Center agency. The 14 and the 9 become rows, not a note.</li>
               <li><b>payer_assignment</b>Per student, so siblings on different payers is the normal case.</li>
-              <li><b>authorization</b><s>Lesson or dollar cap with an expiry.</s> Correction pending: the billing team confirms families hold their own funding and no balance is visible to Blue Buoy — this table, its events, and its endpoint are up for redesign (planning-map ticket #4). Do not build.</li>
+              <li><b>funding_reference</b>A charter PO or Regional Center contract: reference number and kind, not a balance (ADR-0002 — no cap to consume). Its absence for a billing period is what surfaces, as an exception and a coverage-view line.</li>
+              <li><b>payment_application</b>One institutional check settling several students' invoices is the normal case; invoices carry a submitted → paid lifecycle, so receivables aging is a query.</li>
               <li><b>price_agreement</b>The rate this enrollment pays, its reason, and the dates it holds.</li>
               <li><b>invoice · invoice_line</b>Line unit amounts are snapshots: reprinting a two-year-old invoice reproduces it exactly.</li>
               <li><b>credit · credit_application</b>The ledger. A balance is a query, never a field.</li>
@@ -645,7 +646,7 @@
             <ul>
               <li><b>flag</b>Allergy, support need, swim diaper, account handling. Typed data replacing typography.</li>
               <li><b>note</b>Explicit audience: office, instructor, or both.</li>
-              <li><b>document</b>Invoice PDFs, service logs, intake forms. Container fields and the institutional paper trail land here.</li>
+              <li><b>document</b>Invoice PDFs, intake forms. Container fields and the institutional paper trail land here.</li>
             </ul>
           </div>
         </div>
@@ -712,10 +713,9 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
               <tr><td class="mono nw">enrollment.changed</td><td>Close the outgoing price agreement, open the incoming one, mark the period for proration</td></tr>
               <tr><td class="mono nw">lesson.cancelled</td><td>Issue a make-up credit where policy calls for one, notify the family</td></tr>
               <tr><td class="mono nw">closure.declared</td><td>Cancel every lesson in range, issue credits where the closure carries them, send the bulk notice</td></tr>
-              <tr><td class="mono nw">attendance.marked</td><td>Consume an authorization unit, advance progression signals</td></tr>
+              <tr><td class="mono nw">attendance.marked</td><td>Advance progression signals, feed the coverage view</td></tr>
               <tr><td class="mono nw">invoice.issued</td><td>Render the PDF, attach it to the payer, start the terms clock</td></tr>
               <tr><td class="mono nw">payment.failed</td><td>Raise an exception, notify the office, flag the card</td></tr>
-              <tr><td class="mono nw">authorization.nearing_limit</td><td>Alert the office before the cap is passed rather than after</td></tr>
             </tbody>
           </table>
         </div>
@@ -728,7 +728,6 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
             <tbody>
               <tr><td class="nw">Billing run</td><td class="mono nw">Monthly</td><td>Prices active enrollments, raises exceptions, issues invoices on commit</td></tr>
               <tr><td class="nw">Credit expiry sweep</td><td class="mono nw">Nightly</td><td>Expires credits past their validity, which is what retires the manual referral reset</td></tr>
-              <tr><td class="nw">Authorization check</td><td class="mono nw">Nightly</td><td>Flags institutional authorizations near their cap or expiry</td></tr>
               <tr><td class="nw">Card expiry notice</td><td class="mono nw">Weekly</td><td>Surfaces cards on file about to lapse, ahead of a failed charge</td></tr>
               <tr><td class="nw">Lesson materialization</td><td class="mono nw">Nightly</td><td>Extends lesson rows from slot definitions across the rolling window</td></tr>
               <tr><td class="nw">Progression signals</td><td class="mono nw">Weekly</td><td>Feeds the attrition and level-progression reports, all of them queries over the model above</td></tr>
@@ -743,7 +742,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
           <span class="st">exceptions cleared</span><span class="ar">→</span>
           <span class="st last">committed</span>
         </div>
-        <p>It prices every active enrollment, and any household it cannot price cleanly becomes an exception rather than a silent guess: an unresolved mid-month change, a prepaid family whose lock expired, a card that failed last period, an institutional student past their authorization. Staff clear the queue; commit is available once it is empty. The same machine runs in shadow mode against closed months, producing a comparison instead of invoices.</p>
+        <p>It prices every active enrollment, and any household it cannot price cleanly becomes an exception rather than a silent guess: an unresolved mid-month change, a prepaid family whose lock expired, a card that failed last period, an institutional student with no funding reference for the period. Staff clear the queue; commit is available once it is empty. The same machine runs in shadow mode against closed months, producing a comparison instead of invoices.</p>
         <p>The month-end work becomes clearing a short exception list rather than performing the whole run by hand.</p>
 
         <h3>Rules live as data</h3>
@@ -789,8 +788,8 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
               <tr><td class="method">POST</td><td class="mono nw">/api/v1/billing/runs/{id}/commit</td><td>Issue invoices. Available on an empty exception queue</td></tr>
               <tr><td class="method">GET</td><td class="mono nw">/api/v1/invoices/{id}.pdf</td><td>Rendered invoice</td></tr>
               <tr><td class="method">POST</td><td class="mono nw">/api/v1/invoices/{id}/void</td><td>Void inside the window</td></tr>
-              <tr><td class="method">GET</td><td class="mono nw">/api/v1/payers/{id}/authorizations</td><td>Authorized, consumed, remaining, expiring</td></tr>
-              <tr><td class="method">POST</td><td class="mono nw">/api/v1/payers/{id}/invoice-packets</td><td>Institutional packet: invoice plus service logs</td></tr>
+              <tr><td class="method">GET</td><td class="mono nw">/api/v1/payers/{id}/receivables</td><td>Open invoices aged: outstanding, per payer, for how long</td></tr>
+              <tr><td class="method">POST</td><td class="mono nw">/api/v1/payers/{id}/invoices</td><td>Month-end institutional invoice batch for a period</td></tr>
               <tr><td class="method">GET</td><td class="mono nw">/api/v1/students/{id}/credits</td><td>Credit ledger and balance</td></tr>
             </tbody>
           </table>
@@ -800,7 +799,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
         <ul>
           <li><strong>Authorize.Net</strong> — kept, with Customer Information Manager holding the card vault so cards survive cutover. Enable Account Updater, which appears to be off and which turns a failed charge into a silent refresh.</li>
           <li><strong>SMS</strong> — replaces fmSMS. Inbound replies need a destination.</li>
-          <li><strong>PDF</strong> — server-side rendering of invoices and service logs, stored as documents.</li>
+          <li><strong>PDF</strong> — server-side rendering of invoices, stored as documents.</li>
           <li><strong>Object storage</strong> — S3-compatible, holding what FileMaker container fields held plus institutional documentation.</li>
         </ul>
       </section>
@@ -850,7 +849,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
           <div class="num">5</div>
           <div>
             <h3>Institutional payers</h3>
-            <p>The payer subsystem as decided by the authorization-model ticket, built on the collected artifacts: per-payer configuration, month-end invoice generation, the no-purchase-order-yet prompt, receivables aging, and structured invoice and check references replacing the free-text trail.</p>
+            <p>The payer subsystem per ADR-0002, built on the collected artifacts: per-payer configuration, funding references (a charter PO or an RC contract — never a tracked balance), month-end invoice generation, the no-funding-reference prompt, receivables aging, and structured invoice and check references replacing the free-text trail.</p>
             <div class="gate"><span class="tag">Gate</span><p>One full month invoiced through the system for every active institutional payer, with the receivables trail structured rather than free-text.</p></div>
           </div>
         </div>
