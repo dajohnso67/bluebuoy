@@ -262,7 +262,7 @@ The strict slice from ADR-0001: roster view on all form factors (tablet-first), 
 
 Enrollment, schedule editing, waitlist, closures, and search. Search is the phase's centre of gravity, not a feature within it: `saved_search` plus a criteria builder reaching every field staff currently search, seeded with the Saved Finds Q56 names. Plus make-up credit issuance and redemption, closure handling (scheduled vs incidental, with bulk make-ups), eligibility validation with override, and the deck-manager tools held out of the December slice.
 
-**Gate:** every search from Q55–Q58 returns the same set as FileMaker on the same data, and deck staff run one full week of real scheduling in the new UI alongside the old, including one full make-up cycle.
+**Gate:** every search in the [parity enumeration](../discovery/search-parity-enumeration.md) — the scripted and structured searches the DDR encodes plus the daily finds and Saved Finds from Q55–Q58 — returns the same set as FileMaker on the same data, and deck staff run one full week of real scheduling in the new UI alongside the old, including one full make-up cycle.
 
 ### Billing
 
