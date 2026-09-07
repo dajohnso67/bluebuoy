@@ -82,7 +82,7 @@ These are live inconsistencies in the corpus, not hypotheticals:
 
 - **The register is stale.** `PLAN.md` and `open-questions.md` were written when every `qa.md` answer was blank. The context package arrived later with staff answers folded into Part A, and some contradict recorded assumptions — for example, the package records charter-school authorization tracking as a corrected over-design, while `PLAN.md` §2 still models `authorization` consumption against a cap. Trust neither side until the sweep below reconciles them.
 - **Three question-numbering schemes.** `qa.md` (current), `qa1-1.md` (offset −17 from Q24 on), and the package's Part C (its own numbering — the shift-start PIN is Q87 there and Q83 in `qa.md`). A bare "Q41" is ambiguous; every citation carries its document.
-- **Two phase orderings.** `PLAN.md` §5 sequences backend → scheduler → billing → parallel run; the package's Part B sequences attendance first, targeting the December closure, with billing at a calm point in the year. This is a stakeholder decision: surface both with a recommendation and record the choice as an ADR before phase work begins.
+- **Two phase orderings — resolved 2026-09-07.** Attendance-first won, recorded as [ADR-0001](./docs/adr/0001-attendance-first-sequencing.md); `PLAN.md` §5 now carries the named phases (Foundations → Attendance → Scheduling & search → Billing → Institutional payers → Cutover), and bare phase numbers are retired. A document still citing "Phase 3" predates the ADR — resolve it against the named phases.
 - **Every document here has been wrong before.** The package lists its own corrected errors and expects more. Verify a business claim against the DDR or the staff before it becomes schema or code.
 
 ## Rules that hold everywhere
@@ -91,7 +91,7 @@ These are live inconsistencies in the corpus, not hypotheticals:
 2. **Snapshot pricing.** A price is resolved once, by the pricing service, and persisted; nothing monetary recomputes on read. The legacy stamped-rate mechanism (auto-enter calculations frozen at row creation — package technical appendix) is the confirmed root cause of the price-propagation mess; reproduce the snapshot, retire the mechanism.
 3. **Decode before normalize.** ALL-CAPS names, colour highlights, and note shorthand (`AUG PO`, `MU`, `$ OCT`) are operational data. The decode pass runs before any import normalizes text — the wrong order destroys the meaning irreversibly, and silently.
 4. **Unknowns stay unknown.** Students exist with no level, no age, no payment plan. Import them as null; a default is a fabrication.
-5. **Search parity is a gate, not a feature.** Replacing FileMaker's capable ad-hoc find and Saved Finds with a prettier, weaker search is the named capability regression. Phase-3 acceptance is set-equality against the enumerated daily searches on the same data.
+5. **Search parity is a gate, not a feature.** Replacing FileMaker's capable ad-hoc find and Saved Finds with a prettier, weaker search is the named capability regression. The Scheduling & search phase's acceptance is set-equality against the enumerated daily searches on the same data.
 6. **The card vault stays put.** Authorize.Net CIM carries every stored card across cutover; changing gateways would force re-collecting every card from every family.
 7. **The database enforces the two invariants.** Instructor no-overlap (exclusion constraint) and one committed billing run per period (partial unique index) stay constraints — never application discipline (`PLAN.md` §2).
 8. **Import is repeatable and non-destructive.** It runs against live exports until it reconciles; pre-created future billing months import as intentions (enrollments), never as invoices.
@@ -109,6 +109,6 @@ These are live inconsistencies in the corpus, not hypotheticals:
 
 On a fresh engagement, in order:
 
-1. **Reconciliation sweep.** For every `open` and `assumed` row in `open-questions.md`, search the package's Part A and technical appendix for the answer. Where found, flip the row to `answered` with its source and confidence, update the affected `PLAN.md` section, and re-render the blueprint. Where the package contradicts a recorded assumption, surface it.
-2. **Settle the sequencing.** Present the two phase orderings (hazard above) with a recommendation; record the decision as an ADR.
-3. **Then build**, phase by phase, gate by gate, per the reconciled `PLAN.md`.
+1. **Reconciliation sweep** — done 2026-09-07 ([issue #2](https://github.com/dajohnso67/bluebuoy/issues/2)): 20 of 36 register rows flipped to `answered`; three assumptions corrected. The register is the live record.
+2. **Settle the sequencing** — done 2026-09-07: [ADR-0001](./docs/adr/0001-attendance-first-sequencing.md), attendance-first targeting the December 2026 closure.
+3. **Then build**, phase by phase, gate by gate, per the reconciled `PLAN.md` — once the wayfinder map ([issue #1](https://github.com/dajohnso67/bluebuoy/issues/1)) has no decision blocking the phase's gate.

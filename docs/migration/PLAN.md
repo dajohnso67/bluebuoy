@@ -18,7 +18,7 @@ All three bottlenecks are discovery or verification problems. None is a construc
 
 Fourteen charter schools and nine Regional Center agencies exist in FileMaker as a text note telling staff how to bill. Everything downstream happens in QuickBooks, Excel, email, and paper (qa.md Q4–Q13). The fog has since partially lifted: the context package (2.9, **Confirmed** with the billing team) documents the workflow — rates negotiated each July, deliberately above the auto-pay rate; families obtain their own funding and purchase orders, with **no authorization balance visible to Blue Buoy**; month-end invoicing by email/paper or through each school's own portal; payment a month or more later; **no supporting documentation required to release payment**; and the entire receivables trail living as free-text notes (`JAN 11237 $368`, `CK 7499`). What remains foggy: the two portal submission workflows (never examined), the QuickBooks handoff, and how the AR trail gets structured.
 
-**Move:** the discovery track narrows to what's still dark — one real charter invoice, the tracking spreadsheet or QuickBooks view, and a walkthrough of each portal. The service log and authorization letter drop off the artifact list: both are now confirmed not to exist. Design of the payer subsystem is a live decision ticket on the wayfinder map (issue #4); Phase 4 is gated on it and the remaining artifacts.
+**Move:** the discovery track narrows to what's still dark — one real charter invoice, the tracking spreadsheet or QuickBooks view, and a walkthrough of each portal. The service log and authorization letter drop off the artifact list: both are now confirmed not to exist. Design of the payer subsystem is a live decision ticket on the wayfinder map (issue #4); the Institutional payers phase is gated on it and the remaining artifacts.
 
 ### Bottleneck 2 — Money correctness has no clean oracle
 
@@ -32,7 +32,7 @@ The avoidable half of this risk is the card vault. Cards on file live with Autho
 
 Deck Manager's ad-hoc find and its Saved Finds are the staff's power tool, and `qa.md` names the failure directly: replacing a capable search with a prettier, weaker one is how this kind of project goes wrong. Alongside it, real operational data lives in typography — ALL CAPS first names, colour highlights, note shorthand like `AUG PO` and `MU` (Q67–Q69). A straight import reads those as ordinary strings and the meaning evaporates silently, with nothing left to alert anyone.
 
-**Move:** make search parity an acceptance gate in Phase 3, measured against the daily searches and Saved Finds that answers to Q55–Q58 enumerate. Run a **decode pass** before import that converts each convention into typed data, and treat any convention still undecoded at import as a blocking defect.
+**Move:** make search parity an acceptance gate in the Scheduling & search phase, measured against the daily searches and Saved Finds that answers to Q55–Q58 enumerate. Run a **decode pass** before import that converts each convention into typed data, and treat any convention still undecoded at import as a blocking defect.
 
 ### Concurrent locking is a solved case, not a bottleneck
 
@@ -245,42 +245,42 @@ POST /api/v1/schedule/check
 
 ## 5. Phased Execution Roadmap
 
-Each phase ends on a gate. A gate is checkable and exhaustive by design: passing it is an observation, not a judgement.
+Sequencing per [ADR-0001](../adr/0001-attendance-first-sequencing.md): **attendance-first**, targeting the December 2026 closure, with billing deliberately later. Phases carry names, not numbers — the two source documents numbered theirs incompatibly, and bare phase numbers are retired for the same reason bare question numbers were. Each phase ends on a gate; passing a gate is an observation, not a judgement.
 
-### Phase 1 — Data extraction and DDR analysis
+### Foundations
 
-Run the Database Design Report to inventory base tables, table occurrences, calculations, scripts, and value lists. In parallel, and on the critical path, run the two discovery tracks the DDR cannot serve: **archaeology** for the institutional business, collecting the four real artifacts, and the **decode pass** that turns every typographic convention into a documented rule.
+The schema from §2 for identity, scheduling, and flags — money tables follow with Billing; the repeatable, non-destructive import against live exports for that slice; the **decode pass** narrowed to every deck-visible convention (ALL-CAPS student names → `support_need` flag, the under-4 diaper rule), with the full decode still gating the wider import; the auth model — individual accounts, PIN at shift start, session and device management; hosting, backup, and point-in-time recovery with one tested restore. The **archaeology** track (institutional artifacts) runs alongside without gating this phase.
 
-Get `qa.md` back. Answers to Q49, Q1, and Q60–Q63 gate the schema; Q4–Q13 gate the largest subsystem.
+**Gate:** the live file is confirmed (`BlueBuoy_FM` vs `BlueBuoy_FM_2024`); household, student, enrollment, and flag counts reconcile against FileMaker; ten sampled households match field by field, including flags and notes; no deck-visible convention remains undecoded.
 
-**Gate:** every FileMaker base table appears in the mapping with a target or a recorded reason for dropping it; every question in `qa.md` carries a state in the register; the four institutional artifacts are in hand; no undecoded convention remains.
+### Attendance — target: December 2026 closure
 
-### Phase 2 — Core backend and database
+The strict slice from ADR-0001: roster view on all form factors (tablet-first), present/absent, backfill of a prior day, free instructor switching, profile-note indicator with the read-only two-channel display, diaper badge, offline caching of the full day's schedule for all instructors, PIN at shift start. Explicitly excluded: make-ups, scheduling changes, waitlist, billing visibility. Staff train during the two-week closure; the app is system of record at the January reopening.
 
-Build the schema in §2, the Go service layer over it, and the import. Import runs repeatedly and non-destructively until it reconciles, with the decode pass feeding typed flags rather than raw strings.
+**Gate:** a 2–4 week parallel run from the January reopening with attendance reconciled nightly against FileMaker — and instructors prefer it. If they don't, that gets fixed before any later phase proceeds.
 
-FileMaker's pre-created future billing months need a decision of their own before the import runs. They are not history, they are pre-materialized future state, and some of them hold prices that went stale the day the price list changed. Import them as invoices and the staleness crosses into the new system wearing the authority of a record. Import them as what they are — a queue of intentions — and they become enrollments the billing run will price when each period arrives.
+### Scheduling & search
 
-**Gate:** household, student, enrollment, and open-credit counts match FileMaker exactly; ten sampled households match field by field, including flags and notes; and every future-dated billing month is accounted for as either an enrollment or a discard with a reason.
+Enrollment, schedule editing, waitlist, closures, and search. Search is the phase's centre of gravity, not a feature within it: `saved_search` plus a criteria builder reaching every field staff currently search, seeded with the Saved Finds Q56 names. Plus make-up credit issuance and redemption, closure handling (scheduled vs incidental, with bulk make-ups), eligibility validation with override, and the deck-manager tools held out of the December slice.
 
-### Phase 3 — Scheduler UI
+**Gate:** every search from Q55–Q58 returns the same set as FileMaker on the same data, and deck staff run one full week of real scheduling in the new UI alongside the old, including one full make-up cycle.
 
-The deck view, enrollment, waitlist, closures, attendance, and search. Search is the phase's centre of gravity, not a feature within it: `saved_search` plus a criteria builder reaching every field staff currently search, seeded with the Saved Finds Q56 names. Attendance ships as an offline-capable PWA with the PIN-at-shift-start model from Q83.
+### Billing
 
-**Gate:** every search from Q55–Q58 returns the same set as FileMaker on the same data, and deck staff run one full week of real scheduling in the new UI alongside the old.
+Constrained by ADR-0001: begins only after the December 2026 rollover has run in FileMaker, and never cuts over in a peak month. The billing run state machine, pricing, credits, proration, rate-lock price agreements, enrollment holds and the one-year hold clock, the full transaction ledger, invoice PDFs, and the Authorize.Net integration. Dry runs only; nothing charges a card until the shadow gate is green.
 
-### Phase 4 — Billing and PDF generation
+FileMaker's pre-created future billing months need a decision of their own before this phase's import runs. They are not history, they are pre-materialized future state, and some of them hold prices that went stale the day the price list changed. Import them as invoices and the staleness crosses into the new system wearing the authority of a record. Import them as what they are — a queue of intentions — and they become enrollments the billing run will price when each period arrives.
 
-The billing run state machine, pricing, credits, proration, invoice and service-log PDFs, the Authorize.Net integration, and the institutional subsystem the archaeology defined. Dry runs only; nothing charges a card.
+**Gate:** open-credit counts reconcile and every future-dated billing month is accounted for as either an enrollment or a discard with a reason; a dry run of the last closed month reproduces every FileMaker invoice to the cent, or names the difference and its cause; then shadow runs monthly against live data until **three consecutive months land green** — every difference resolved into a fixed bug or a recorded FileMaker error.
 
-**Gate:** a dry run of the last closed month reproduces every FileMaker invoice to the cent, or names the difference and its cause.
+### Institutional payers
 
-### Phase 5 — Parallel run and cutover
+The payer subsystem as decided by the authorization-model ticket, built on the collected artifacts: per-payer configuration (contract rates, submission method, billing contact), month-end invoice generation, the no-PO-yet prompt, receivables aging, and structured invoice/check references replacing the free-text trail.
 
-Shadow runs monthly against live data while FileMaker stays the system of record. Differences resolve into fixed bugs or recorded FileMaker errors. Staff work both systems for scheduling and attendance; billing commits in one place only.
+**Gate:** one full month invoiced through the system for every active institutional payer, with the receivables trail structured rather than free-text.
 
-**Gate:** three consecutive shadow months land green.
+### Cutover
 
-**Cutover:** freeze FileMaker writes, run the final import, verify counts, point the gateway at the new system, and keep FileMaker readable for a year. The card vault stays where it is, so no family is asked for a card.
+Freeze FileMaker writes, run the final import, verify counts, point the gateway at the new system, and keep FileMaker readable for a year alongside a permanent frozen archive. The card vault stays where it is, so no family is asked for a card.
 
 **Rollback:** available until the first committed billing run in the new system. Past that point, FileMaker no longer holds the month, and recovery is forward — which is why three green months, and not two, is the bar.

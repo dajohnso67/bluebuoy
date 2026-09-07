@@ -10,7 +10,7 @@ Every decision in [`PLAN.md`](./PLAN.md) that waits on an answer from [`qa.md`](
 
 **States:** `open` (no answer, no working assumption) · `assumed` (working assumption recorded below, safe to build on) · `answered` (confirmed; update the row and the affected section of `PLAN.md`).
 
-## Blocks Phase 2 — the schema cannot settle without these
+## Blocks Foundations — the schema cannot settle without these
 
 | Decision | qa.md | Working assumption · answer | State |
 | --- | --- | --- | --- |
@@ -24,11 +24,11 @@ Every decision in [`PLAN.md`](./PLAN.md) that waits on an answer from [`qa.md`](
 | Which note abbreviations mean what (`AUG PO`, `WORK`, `MU`, `OUT`) | Q69 | Partial decode (package 3.2, 3.7): `$ OCT`-style notes = a billing adjustment due that month (Confirmed); `WORK`, `AUG PO` = hold reasons stored as text. Full glossary still needed; import preserves raw note text until decoded. | open |
 | Which colour highlights and typing conventions carry meaning | Q67, Q68 | **Confirmed (package 3.2):** student first name in ALL CAPS = special needs (verified against `flag_Special_Needs`); parent first name in ALL CAPS = difficult account; bold at top of account = permanent info incl. UCI number and coordinator contacts; age highlight = under-4 swim-diaper requirement; blue/pink = gender; red note = needs attention; `$ OCT` = scheduled adjustment. | answered |
 | Whether the ALL CAPS convention becomes a typed flag | Q71 | Split into `support_need` and `account_handling` flags, office-only for the latter. Package 3.2 recommends the same replacement; ownership sign-off pending (Part D). | assumed |
-| How price changes actually propagate, given that pre-created future billing months keep the old rate while newly created ones take the new | `qa1-1.md` Q3, Q16 | **Confirmed (DDR + package 3.5):** rates are stamped by auto-enter at row creation; next year's rows are pre-generated in bulk, so pre-created months keep old rates while newly created rows take new ones. Prepay locks are maintained entirely by hand — twelve monthly negative adjustments per prepaid family per year. Import treats future billing months as intentions, never invoices (`PLAN.md` §5 Phase 2). | answered |
+| How price changes actually propagate, given that pre-created future billing months keep the old rate while newly created ones take the new | `qa1-1.md` Q3, Q16 | **Confirmed (DDR + package 3.5):** rates are stamped by auto-enter at row creation; next year's rows are pre-generated in bulk, so pre-created months keep old rates while newly created rows take new ones. Prepay locks are maintained entirely by hand — twelve monthly negative adjustments per prepaid family per year. Import treats future billing months as intentions, never invoices (`PLAN.md` §5, Billing phase). | answered |
 | **(new)** Make-up credit conversion ratios between lesson types | package Part C R2 Q7–Q11 | Reported only (package 3.3): credits convert between types (~4 group ≈ 1 private; some group ≈ 1 semi-private). Ratios, permitted directions, and approval process unverified — and they change the credit model from six separate balances to one denominated system. | open |
 | **(new)** Which FileMaker file is live: `BlueBuoy_FM` or `BlueBuoy_FM_2024` | package Part C R2 Q18 | The analyzed schema is `BlueBuoy_FM`, but `BlueBuoy_FM_2024` exists on the host and hasn't been analyzed (package appendix). Until answered, the analyzed schema cannot be treated as canonical for the import. | open |
 
-## Blocks Phase 3 — scheduler and search
+## Blocks Scheduling & search
 
 | Decision | qa.md | Working assumption · answer | State |
 | --- | --- | --- | --- |
@@ -42,7 +42,7 @@ Every decision in [`PLAN.md`](./PLAN.md) that waits on an answer from [`qa.md`](
 | PIN at shift start acceptable | Q82, Q83 | **Confirmed (package 1.2):** PIN at shift start establishes identity; switching the displayed schedule and marking your own attendance from any device stays instant and password-free — device independence is a hard requirement. Bounded PIN-session window, auto re-lock on inactivity, remote revocation. | answered |
 | **(new)** Make-up offer response window | package 2.5, Part D | An active offer genuinely holds the slot, then auto-cascades to the next family on expiry. The window's duration is unset — confirm with staff. | open |
 
-## Blocks Phase 4 — billing and institutional payers
+## Blocks Billing and Institutional payers
 
 | Decision | qa.md | Working assumption · answer | State |
 | --- | --- | --- | --- |
@@ -73,7 +73,7 @@ Every decision in [`PLAN.md`](./PLAN.md) that waits on an answer from [`qa.md`](
 | What billing situations fall outside the system today | Q51 | Direct answer to what the replacement must absorb. |
 | Access model: who may price, credit, and see billing | Q80 | Roles seeded conservatively; widened on answer. Package §1 proposes four roles incl. the Deck Manager surfaced from `Instructor_Entry`. |
 | Shared logins and offboarding | Q87, Q88, Q91 | Per-person accounts from day one regardless of answer. Package 1.3 confirms at least one shared login ("deck manager") exists today. |
-| Backup and restore reality, tolerable downtime | Q93–Q95 | Sets the recovery objective for Phase 5. Whether a FileMaker restore has ever been tested is still unknown (package Part D). |
+| Backup and restore reality, tolerable downtime | Q93–Q95 | Sets the recovery objective for Cutover. Whether a FileMaker restore has ever been tested is still unknown (package Part D). |
 | Bulk texting use and unmet wants | Q72–Q74 | Scopes the fmSMS replacement. Confirmed (package 2.10): fmSMS is a Databuzz shell over a third-party SMS gateway — identify the configured provider from its Accounts/Gateways tab; inbound replies currently go nowhere and staff want them. |
 | Instructor-authored progress notes | Q77, Q78 | Note audience model already supports it. |
 | Allergy prominence | Q76 | Flag severity already supports it. |
