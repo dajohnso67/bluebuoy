@@ -25,8 +25,8 @@ Every decision in [`PLAN.md`](./PLAN.md) that waits on an answer from [`qa.md`](
 | Which colour highlights and typing conventions carry meaning | Q67, Q68 | **Confirmed (package 3.2):** student first name in ALL CAPS = special needs (verified against `flag_Special_Needs`); parent first name in ALL CAPS = difficult account; bold at top of account = permanent info incl. UCI number and coordinator contacts; age highlight = under-4 swim-diaper requirement; blue/pink = gender; red note = needs attention; `$ OCT` = scheduled adjustment. | answered |
 | Whether the ALL CAPS convention becomes a typed flag | Q71 | Split into `support_need` and `account_handling` flags, office-only for the latter. Package 3.2 recommends the same replacement; ownership sign-off pending (Part D). | assumed |
 | How price changes actually propagate, given that pre-created future billing months keep the old rate while newly created ones take the new | `qa1-1.md` Q3, Q16 | **Confirmed (DDR + package 3.5):** rates are stamped by auto-enter at row creation; next year's rows are pre-generated in bulk, so pre-created months keep old rates while newly created rows take new ones. Prepay locks are maintained entirely by hand — twelve monthly negative adjustments per prepaid family per year. Import treats future billing months as intentions, never invoices (`PLAN.md` §5, Billing phase). | answered |
-| **(new)** Make-up credit conversion ratios between lesson types | package Part C R2 Q7–Q11 | Reported only (package 3.3): credits convert between types (~4 group ≈ 1 private; some group ≈ 1 semi-private). Ratios, permitted directions, and approval process unverified — and they change the credit model from six separate balances to one denominated system. | open |
-| **(new)** Which FileMaker file is live: `BlueBuoy_FM` or `BlueBuoy_FM_2024` | package Part C R2 Q18 | The analyzed schema is `BlueBuoy_FM`, but `BlueBuoy_FM_2024` exists on the host and hasn't been analyzed (package appendix). Until answered, the analyzed schema cannot be treated as canonical for the import. | open |
+| **(new)** Make-up credit conversion ratios between lesson types | Q100 | Reported only (package 3.3): credits convert between types (~4 group ≈ 1 private; some group ≈ 1 semi-private). Ratios, permitted directions, and approval process unverified — and they change the credit model from six separate balances to one denominated system. | open |
+| **(new)** Which FileMaker file is live: `BlueBuoy_FM` or `BlueBuoy_FM_2024` | Q99 | The analyzed schema is `BlueBuoy_FM`, but `BlueBuoy_FM_2024` exists on the host and hasn't been analyzed (package appendix). Until answered, the analyzed schema cannot be treated as canonical for the import. | open |
 
 ## Blocks Scheduling & search
 
@@ -40,7 +40,7 @@ Every decision in [`PLAN.md`](./PLAN.md) that waits on an answer from [`qa.md`](
 | Offline need on the pool deck | Q85, Q86 | Attendance works offline and syncs; assume dead zones exist. Package 2.1 raises the bar: cache the **full day's schedule for all instructors** on every device — dead-battery iPad handoffs are routine. | assumed |
 | Whether attendance records who marked it | Q84 | Recorded silently, no extra step for instructors. Package 1.2 concurs: attribution as a passive byproduct at most — confirm staff want it at all. | assumed |
 | PIN at shift start acceptable | Q82, Q83 | **Confirmed (package 1.2):** PIN at shift start establishes identity; switching the displayed schedule and marking your own attendance from any device stays instant and password-free — device independence is a hard requirement. Bounded PIN-session window, auto re-lock on inactivity, remote revocation. | answered |
-| **(new)** Make-up offer response window | package 2.5, Part D | An active offer genuinely holds the slot, then auto-cascades to the next family on expiry. The window's duration is unset — confirm with staff. | open |
+| **(new)** Make-up offer response window | Q102 | An active offer genuinely holds the slot, then auto-cascades to the next family on expiry. The window's duration is unset — confirm with staff. | open |
 
 ## Blocks Billing and Institutional payers
 
@@ -63,7 +63,7 @@ Every decision in [`PLAN.md`](./PLAN.md) that waits on an answer from [`qa.md`](
 | Processing stack confirmation | Q35–Q38 | Affinity24 processor, Authorize.Net gateway, Wells Fargo settlement. Monthly volume answered "550–700" — almost certainly transaction count, unit unconfirmed (package Part D). The gateway stays regardless (master prompt rule 6); the package's Stripe recommendations are superseded architecture advice. | assumed |
 | Whether December/January closure bills normally | Q41, Q42 | **Confirmed (package 3.8, 3.5):** full monthly amount, no credit — the two-week closure is absorbed into the flat annual tuition model (`Billing_Months` has no lesson-count field). | answered |
 | Whether one-off closures always credit | Q43, Q44 | **Confirmed (package 3.8, 3.9, live records):** yes — a bulk closure action issues make-ups to everyone affected (Memorial Day and Presidents Day closures seen on real student records); the legacy "do not issue" guard covers the exceptions. | answered |
-| **(new)** Military discount: amount and stacking | package 2.15, Part D | A military discount exists (families need somewhere to attach ID proof) but appears nowhere else in the corpus. Amount, and stacking with sibling and prepay discounts, unknown. | open |
+| **(new)** Military discount: amount and stacking | Q101 | A military discount exists (families need somewhere to attach ID proof) but appears nowhere else in the corpus. Amount, and stacking with sibling and prepay discounts, unknown. | open |
 
 ## Shapes the build without blocking it
 

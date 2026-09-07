@@ -483,6 +483,26 @@ We have approximate requirements but need them confirmed exactly, since the syst
 
 *Answer:* 
 
+## **Follow-ups (added September 2026)**
+
+New questions that surfaced after the original set went out.
+
+**99\.  Which FileMaker file is the live one — `BlueBuoy_FM` or `BlueBuoy_FM_2024`?** Both exist on the server; we analyzed `BlueBuoy_FM` and need to know whether that's the one in daily use. (For whoever manages the FileMaker server.)
+
+*Answer:* 
+
+**100\.  Make-up credit conversion between lesson types** — we heard credits can be traded across types (something like a few group credits equaling one semi-private, and about four group equaling one private). Is that right? What are the actual ratios, which directions are allowed (can a private credit be split into group credits?), and does someone approve each conversion or is it automatic?
+
+*Answer:* 
+
+**101\.  The military discount** — how much is it, and does it stack with the sibling and prepay discounts?
+
+*Answer:* 
+
+**102\.  When you offer a family a make-up slot, how long should they get to answer** before the offer moves on to the next family? Today this is informal — we want to put a real clock on it, so tell us what feels right (a few hours, a day, ...).
+
+*Answer:* 
+
 | Part 2: The Most Important Question |
 | :---- |
 
