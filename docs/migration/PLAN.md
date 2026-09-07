@@ -4,7 +4,7 @@ Structural blueprint and execution roadmap for replacing Blue Buoy's FileMaker s
 
 Synthesised from [`technical-prompt.md`](../../technical-prompt.md), the architecture brief, and the staff discovery questionnaire, which exists in two drafts: [`qa.md`](../../qa.md) is the current one, and [`qa1-1.md`](../../qa1-1.md) is the earlier draft it grew from. Question numbers below follow `qa.md`; where a finding survives only in the earlier draft, the citation says so.
 
-**Every answer in `qa.md` is blank today.** What follows is built on the software analysis; wherever it rests on an unconfirmed reading, [`open-questions.md`](./open-questions.md) names the decision that answer blocks. Build on an assumption freely; confirm it before it prices anything.
+**`qa.md` itself is still blank, but staff answers arrived by another route:** [`resources/BlueBuoy_Complete_Context_Package.md`](../../resources/BlueBuoy_Complete_Context_Package.md) folds a questionnaire round and ownership conversations into its Part A, and the reconciliation sweep of 2026-09-07 flipped every register row the package answers — twenty of thirty-six. Wherever this plan still rests on an unconfirmed reading, [`open-questions.md`](./open-questions.md) names the decision that answer blocks. Build on an assumption freely; confirm it before it prices anything. Where the package **corrected** an assumption this plan encodes, the affected section carries an explicit correction note rather than a silent rewrite.
 
 Domain terms are defined once, in [`CONTEXT.md`](../../CONTEXT.md), and used as defined here.
 
@@ -16,13 +16,13 @@ All three bottlenecks are discovery or verification problems. None is a construc
 
 ### Bottleneck 1 — Fog: institutional billing has no digital trace
 
-Fourteen charter schools and nine Regional Center agencies exist in FileMaker as a text note telling staff how to bill. Everything downstream — authorizations, service documentation, invoicing, collection — happens in spreadsheets, email, and paper (qa.md Q4–Q13). It is simultaneously the largest greenfield subsystem and the least specified, and DDR analysis cannot reach it: a schema dump describes no process that never touched the schema.
+Fourteen charter schools and nine Regional Center agencies exist in FileMaker as a text note telling staff how to bill. Everything downstream happens in QuickBooks, Excel, email, and paper (qa.md Q4–Q13). The fog has since partially lifted: the context package (2.9, **Confirmed** with the billing team) documents the workflow — rates negotiated each July, deliberately above the auto-pay rate; families obtain their own funding and purchase orders, with **no authorization balance visible to Blue Buoy**; month-end invoicing by email/paper or through each school's own portal; payment a month or more later; **no supporting documentation required to release payment**; and the entire receivables trail living as free-text notes (`JAN 11237 $368`, `CK 7499`). What remains foggy: the two portal submission workflows (never examined), the QuickBooks handoff, and how the AR trail gets structured.
 
-**Move:** run institutional billing as its own discovery track from day one, and make its Phase 1 output *artifacts* rather than answers — one real charter invoice, one real service log, one real authorization letter, one month of whatever spreadsheet tracks it. Design begins when those land. Phase 4 is gated on them.
+**Move:** the discovery track narrows to what's still dark — one real charter invoice, the tracking spreadsheet or QuickBooks view, and a walkthrough of each portal. The service log and authorization letter drop off the artifact list: both are now confirmed not to exist. Design of the payer subsystem is a live decision ticket on the wayfinder map (issue #4); Phase 4 is gated on it and the remaining artifacts.
 
 ### Bottleneck 2 — Money correctness has no clean oracle
 
-Today's month-end run is manual posting, manual proration, a spreadsheet cross-reference against the card processor, manual referral-credit resets, and a void-or-refund window (qa.md Q24–Q34). Because the outputs are the product of human correction, "match FileMaker" is not a trustworthy target: some of what it produced was wrong and staff caught it downstream — or didn't, as with a missed referral reset that silently keeps discounting a family (Q29).
+Today's month-end run is manual posting, manual proration, a spreadsheet cross-reference against the card processor, manual referral-credit resets, and a void-or-refund window (qa.md Q24–Q34) — now **Confirmed** at 6–7 hours in a normal month and 10–12 across two days in summer, roughly 100 hours a year, with card mismatches every month (package 2.8). Because the outputs are the product of human correction, "match FileMaker" is not a trustworthy target: some of what it produced was wrong and staff caught it downstream — or didn't, as with a missed referral reset that silently keeps discounting a family (Q29).
 
 **Move:** reconcile by **shadow run**. Price closed months in the new system, compare per household to the cent, and classify every difference as a bug to fix or a FileMaker error to record. The run is **green** when no unexplained difference remains. Green months, not feature completion, are what authorize cutover.
 
@@ -104,6 +104,8 @@ The brief's four entities map onto Blue Buoy as: **Customers** → `household` a
 - `adjustment` — `invoice_id`, amount, `reason_code`, `created_by`. For genuine one-offs, once the routine cases stop needing one.
 - `billing_run` — period, mode (`dry_run`, `shadow`, `committed`), state, timestamps.
 - `billing_run_exception` — `run_id`, `household_id`, code, detail. The queue that replaces the spreadsheet cross-reference.
+
+> **Correction pending — wayfinder ticket #4.** The context package (2.9, **Confirmed**) contradicts the `authorization` model above: charter and Regional Center funding is held by the *family*; Blue Buoy has no visibility into balances or caps, so there is no consumption to track and nothing to warn against. The confirmed needs are a month-end "enrolled institutional students with no purchase order yet" prompt and per-payer receivables aging. Until that ticket lands, treat as up-for-redesign and **do not build**: the `authorization` table, the `attendance.marked` consumption handler and `authorization.nearing_limit` event (§3), the nightly authorization check (§3), the `GET /api/v1/payers/{id}/authorizations` endpoint (§4), and the service-log half of invoice packets (§4) — service logs are Confirmed unnecessary to release payment (qa.md Q12).
 
 **Flags, notes, documents**
 

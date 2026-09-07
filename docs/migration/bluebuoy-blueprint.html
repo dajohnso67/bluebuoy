@@ -514,14 +514,14 @@
     <main>
 
       <div class="callout">
-        <p><strong>Every answer in the discovery questionnaire is blank today.</strong> This blueprint is built on what the software analysis established. Wherever it rests on an unconfirmed reading, the register records the decision that answer blocks. Build on an assumption freely; confirm it before it prices anything.</p>
+        <p><strong>Staff answers have begun to land.</strong> The questionnaire document itself is still blank, but a context package assembled from staff and ownership conversations answered twenty of the register's thirty-six decisions, and the reconciliation sweep of 2026-09-07 folded them in — correcting three recorded assumptions outright. Wherever this blueprint still rests on an unconfirmed reading, the register records the decision that answer blocks. Build on an assumption freely; confirm it before it prices anything.</p>
       </div>
 
       <div class="stats">
         <div class="stat"><div class="v">98</div><div class="k">questions asked<br>of staff</div></div>
-        <div class="stat warn"><div class="v">0</div><div class="k">answered<br>so far</div></div>
-        <div class="stat"><div class="v">36</div><div class="k">build decisions<br>waiting on them</div></div>
-        <div class="stat warn"><div class="v">16</div><div class="k">with no working<br>assumption yet</div></div>
+        <div class="stat"><div class="v">20</div><div class="k">register rows<br>answered</div></div>
+        <div class="stat warn"><div class="v">20</div><div class="k">build decisions<br>still waiting</div></div>
+        <div class="stat warn"><div class="v">11</div><div class="k">with no working<br>assumption yet</div></div>
       </div>
 
       <section id="s1">
@@ -533,17 +533,17 @@
         <div class="bottleneck">
           <span class="label">Bottleneck 01</span>
           <h3>Fog: institutional billing has no digital trace</h3>
-          <p>Fourteen charter schools and nine Regional Center agencies exist in FileMaker as a text note telling staff how to bill. Everything downstream — authorizations, service documentation, invoicing, collection — happens in spreadsheets, email, and paper. It is simultaneously the largest greenfield subsystem and the least specified, and DDR analysis cannot reach it: a schema dump describes no process that never touched the schema.</p>
+          <p>Fourteen charter schools and nine Regional Center agencies exist in FileMaker as a text note telling staff how to bill. Everything downstream happens in QuickBooks, Excel, email, and paper. The fog has since partially lifted: the billing team has confirmed the workflow — rates negotiated each July, deliberately above the auto-pay rate; families obtain their own funding and purchase orders, with <strong>no authorization balance visible to Blue Buoy</strong>; month-end invoicing by email/paper or through each school's own portal; payment a month or more later; <strong>no supporting documentation required to release payment</strong>; and the entire receivables trail living as free-text notes (<code>JAN 11237 $368</code>, <code>CK 7499</code>). Still dark: the two portal submission workflows, the QuickBooks handoff, and how the receivables trail gets structured.</p>
           <div class="move">
             <span class="tag">Move</span>
-            <p>Run institutional billing as its own discovery track from day one, and make its Phase 1 output <em>artifacts</em> rather than answers — one real charter invoice, one real service log, one real authorization letter, one month of whatever spreadsheet tracks it. Design begins when those land. Phase 4 is gated on them.</p>
+            <p>The discovery track narrows to what's still dark — one real charter invoice, the tracking spreadsheet or QuickBooks view, and a walkthrough of each portal. The service log and authorization letter drop off the artifact list: both are now confirmed not to exist. Design of the payer subsystem is a live decision ticket on the planning map; Phase 4 is gated on it and the remaining artifacts.</p>
           </div>
         </div>
 
         <div class="bottleneck">
           <span class="label">Bottleneck 02</span>
           <h3>Money correctness has no clean oracle</h3>
-          <p>Today's month-end run is manual posting, manual proration, a spreadsheet cross-reference against the card processor, manual referral-credit resets, and a void-or-refund window. Because the outputs are the product of human correction, “match FileMaker” is not a trustworthy target: some of what it produced was wrong and staff caught it downstream — or didn't, as with a missed referral reset that silently keeps discounting a family.</p>
+          <p>Today's month-end run is manual posting, manual proration, a spreadsheet cross-reference against the card processor, manual referral-credit resets, and a void-or-refund window — now confirmed at 6–7 hours in a normal month and 10–12 across two days in summer, roughly 100 hours a year, with card mismatches every month. Because the outputs are the product of human correction, “match FileMaker” is not a trustworthy target: some of what it produced was wrong and staff caught it downstream — or didn't, as with a missed referral reset that silently keeps discounting a family.</p>
           <div class="move">
             <span class="tag">Move</span>
             <p>Reconcile by <strong>shadow run</strong>. Price closed months in the new system, compare per household to the cent, and classify every difference as a bug to fix or a FileMaker error to record. The run is <strong>green</strong> when no unexplained difference remains. Green months, not feature completion, are what authorize cutover.</p>
@@ -632,7 +632,7 @@
             <ul>
               <li><b>payer</b>Household, charter school, or Regional Center agency. The 14 and the 9 become rows, not a note.</li>
               <li><b>payer_assignment</b>Per student, so siblings on different payers is the normal case.</li>
-              <li><b>authorization</b>Lesson or dollar cap with an expiry. Teaching past it becomes visible before it becomes unpaid work.</li>
+              <li><b>authorization</b><s>Lesson or dollar cap with an expiry.</s> Correction pending: the billing team confirms families hold their own funding and no balance is visible to Blue Buoy — this table, its events, and its endpoint are up for redesign (planning-map ticket #4). Do not build.</li>
               <li><b>price_agreement</b>The rate this enrollment pays, its reason, and the dates it holds.</li>
               <li><b>invoice · invoice_line</b>Line unit amounts are snapshots: reprinting a two-year-old invoice reproduces it exactly.</li>
               <li><b>credit · credit_application</b>The ledger. A balance is a query, never a field.</li>
