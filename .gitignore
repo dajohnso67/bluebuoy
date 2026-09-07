@@ -1,0 +1,7 @@
+# Live FileMaker exports: student/family PII, never committed.
+# Profiling output (aggregates only) goes to docs/discovery/ instead.
+resources/exports/
+*.mer
+
+# Local agent config
+.claude/
