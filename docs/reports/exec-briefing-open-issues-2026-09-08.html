@@ -1,0 +1,256 @@
+<title>Blue Buoy Open Issues Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+  :root {
+    --ground: #f3f6f8;
+    --surface: #ffffff;
+    --ink: #142a3b;
+    --ink-2: #48606f;
+    --ink-3: #7a8e9b;
+    --rule: #d6dfe5;
+    --accent: #0e6f7c;
+    --accent-soft: #dcecef;
+    --critical: #a8391f;
+    --critical-soft: #f6e4de;
+    --caution: #9a6a12;
+    --caution-soft: #f5ead2;
+    --good: #2c6e49;
+    --good-soft: #dcefe3;
+    --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --body: "Source Serif 4", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0f1a21;
+      --surface: #16242d;
+      --ink: #e4ecf1;
+      --ink-2: #a9bac5;
+      --ink-3: #7b8f9c;
+      --rule: #2a3a45;
+      --accent: #5cbcc7;
+      --accent-soft: #163a41;
+      --critical: #f0917a;
+      --critical-soft: #3c2119;
+      --caution: #e3b45c;
+      --caution-soft: #3a2e14;
+      --good: #7fc79b;
+      --good-soft: #17352a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0f1a21;
+    --surface: #16242d;
+    --ink: #e4ecf1;
+    --ink-2: #a9bac5;
+    --ink-3: #7b8f9c;
+    --rule: #2a3a45;
+    --accent: #5cbcc7;
+    --accent-soft: #163a41;
+    --critical: #f0917a;
+    --critical-soft: #3c2119;
+    --caution: #e3b45c;
+    --caution-soft: #3a2e14;
+    --good: #7fc79b;
+    --good-soft: #17352a;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+
+  .masthead { display: grid; gap: 1rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--ink); }
+  .eyebrow {
+    font-family: var(--display); font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent);
+  }
+  h1 {
+    font-family: var(--display); font-size: clamp(1.9rem, 4.5vw, 2.6rem); line-height: 1.1;
+    font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: -0.01em;
+  }
+  .meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; color: var(--ink-2); font-size: 0.95rem; }
+  .meta span b { font-weight: 600; color: var(--ink); }
+
+  .risk {
+    display: grid; grid-template-columns: auto 1fr; gap: 0 1rem; align-items: center;
+    margin-top: 1.75rem; padding: 0.9rem 1.1rem; border: 1px solid var(--rule);
+    border-left: 4px solid var(--caution); background: var(--surface); border-radius: 4px;
+  }
+  .risk .lvl { font-family: var(--display); font-weight: 700; font-size: 1.05rem; color: var(--caution); white-space: nowrap; }
+  .risk p { margin: 0; color: var(--ink-2); font-size: 0.95rem; }
+
+  h2 {
+    font-family: var(--display); font-size: 1.45rem; font-weight: 700; line-height: 1.2;
+    margin: 3rem 0 1rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--display); font-size: 1.05rem; font-weight: 600; margin: 1.75rem 0 0.6rem;
+    display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; text-wrap: balance;
+  }
+  .tag {
+    font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; font-weight: 600;
+    padding: 0.15rem 0.5rem; border-radius: 999px; white-space: nowrap;
+  }
+  .tag.critical { background: var(--critical-soft); color: var(--critical); }
+  .tag.caution { background: var(--caution-soft); color: var(--caution); }
+  .tag.good { background: var(--good-soft); color: var(--good); }
+  .tag.accent { background: var(--accent-soft); color: var(--accent); }
+
+  p { margin: 0 0 1rem; max-width: 65ch; }
+  .snapshot p { font-size: 1.08rem; }
+  ul, ol { margin: 0 0 1rem; padding-left: 1.25rem; display: grid; gap: 0.55rem; }
+  li { max-width: 68ch; }
+  li b { font-weight: 600; }
+  .note { color: var(--ink-2); font-size: 0.95rem; border-left: 3px solid var(--rule); padding-left: 0.9rem; }
+
+  .tablewrap { overflow-x: auto; margin: 0.5rem 0 1rem; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
+  th, td { text-align: left; vertical-align: top; padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--rule); }
+  th { font-family: var(--display); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+  td:first-child { white-space: nowrap; font-family: var(--display); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .status { font-family: var(--display); font-size: 0.8rem; font-weight: 600; }
+  .status.open { color: var(--caution); }
+  .status.closed { color: var(--good); }
+  .basis td:first-child { white-space: normal; font-family: var(--body); font-weight: 400; }
+
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--ink-3); font-size: 0.85rem; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">Blue Buoy System Replacement</div>
+    <h1>Executive Briefing on Open Issues</h1>
+    <div class="meta">
+      <span><b>Prepared</b> 8 September 2026</span>
+      <span><b>Source</b> the project work-tracking board, this evening</span>
+      <span><b>Audience</b> leadership, business stakeholders, partners</span>
+    </div>
+  </header>
+
+  <div class="risk">
+    <div class="lvl">Risk: moderate, rising</div>
+    <p>Decisions are healthy. Every open item now waits on Blue Buoy staff time, with no owners or due dates, and the December training window slips by default if that does not change within two weeks.</p>
+  </div>
+
+  <section class="snapshot">
+    <h2>Executive Snapshot</h2>
+    <p>The replacement of the FileMaker scheduling, attendance and billing system is in its decision phase, and that phase is healthy: every decision the project team could settle on its own is settled and written down, and three costly wrong assumptions were caught before anything was built. Overall risk is moderate and rising, because all five open items now wait on Blue Buoy staff time with no named owners or due dates, and the December 2026 training window for the new attendance app is missed by default if that does not change within two weeks. Separately, customer card numbers sit in readable form in the current system with no interim plan, a live compliance exposure that exists whether or not the project proceeds.</p>
+  </section>
+
+  <section>
+    <h2>Primary Operational Roadblocks</h2>
+
+    <h3>Launch timing: the December window is at risk by default <span class="tag critical">Launch delay</span></h3>
+    <ul>
+      <li><b>The one question that blocks all data work is unanswered.</b> Two similarly named copies of the FileMaker system exist on the server, and nobody has confirmed which one staff actually use, so no data can be moved or even measured.</li>
+      <li><b>The first staff question batch is written but not confirmed delivered.</b> Its urgent section, six questions for deck staff and whoever runs the server, must come back within a week of delivery to keep December viable.</li>
+      <li><b>No sample of the live data has been produced.</b> The instructions are ready and deliberately exclude card numbers, but someone with full access to the current system must run the export before the data can be sized and cleaned.</li>
+      <li><b>Nobody outside the project team owns anything.</b> Every item on the board is assigned to one person, and no due dates or milestones exist.</li>
+    </ul>
+
+    <h3>Financial and compliance exposure <span class="tag critical">Compliance</span></h3>
+    <ul>
+      <li><b>Customer card numbers are stored in readable form today.</b> This is a live exposure under the card-industry security rules (PCI) and a breach liability, and the only remedy on the board arrives with billing in 2027.</li>
+      <li><b>Billing stays on the old system well into 2027 by design.</b> The current system runs the December price change and bulk billing one more time, and the new system takes over billing only after that has been observed and never during the summer peak.</li>
+      <li><b>The card-processor switchover is a one-day cliff.</b> When the new system receives its own processor credentials, the old system's card processing stops within a day, so the switch must be scheduled rather than stumbled into.</li>
+    </ul>
+
+    <h3>Institutional revenue: charter schools and Regional Centers <span class="tag caution">Cash flow</span></h3>
+    <ul>
+      <li><b>Nothing has been collected yet.</b> Billing for 14 charter schools and 9 Regional Center agencies runs entirely outside the current system, and not one real invoice, receivables view or portal walkthrough has been gathered.</li>
+      <li><b>The pain is slow payment, not non-payment.</b> The new system cannot shorten collection times until this paperwork shows how invoices are numbered, submitted and paid.</li>
+    </ul>
+
+    <h3>Data quality and daily operations <span class="tag caution">Customer experience</span></h3>
+    <ul>
+      <li><b>The size of the cleanup is unknown.</b> Roughly 14,000 family and 9,000 student records span many years, and how many are active, duplicated or placeholders has not been measured.</li>
+      <li><b>Several habits in the old data can produce wrong rosters or wrong bills if carried over naively.</b> These include placeholder records that every staff search silently skips, instructors identified by first name only, and student names typed in capitals as a special-needs signal.</li>
+      <li><b>Daily search parity is half defined.</b> The searches built into the old system have been listed, but what staff actually type and save each day waits on the same question batch.</li>
+    </ul>
+
+    <h3>Delivery risk <span class="tag caution">Continuity</span></h3>
+    <ul>
+      <li><b>One person carries the whole project.</b> Illness, holiday or a competing priority stops the project entirely, and no one else is positioned to challenge a decision before it becomes expensive.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Strategic Resolution Roadmap</h2>
+
+    <h3>Recommended path: protect December <span class="tag accent">Recommended</span></h3>
+    <ol>
+      <li><b>Name owners and dates this week.</b> Assign one named person from each group to the three open handovers: staff questions (deck staff, billing team, office staff), the live-system export (whoever holds full access to the current system), and the institutional billing paperwork (whoever has QuickBooks and portal access).</li>
+      <li><b>Confirm today whether the question batch has reached staff, and set return dates.</b> Ask for the urgent section by 15 September and the remainder by 22 September.</li>
+      <li><b>Put a visible go or no-go date on December, ideally early October.</b> Decide with the first staff answers and the data export in hand, knowing the board identifies no other lesson-free window, so a slip pushes go-live into the 2027 school term.</li>
+      <li><b>Budget the staff time now.</b> Estimated at one to three hours per person for questions and the export, and half a day for whoever collects the QuickBooks and portal material.</li>
+    </ol>
+    <p class="note">Alternative considered: deferring December now. It removes schedule pressure, but instructors spend another year on the old tool and training moves into term time where staff hours are scarce. Not recommended unless the urgent answers have not arrived by early October.</p>
+
+    <h3>Decide the interim handling of card numbers <span class="tag critical">Decision needed</span></h3>
+    <ul>
+      <li><b>This does not need the new system.</b> Options range from restricting who can see those fields, to removing card details for families who have not paid by card in the last year, to moving card storage to the processor ahead of the rest of billing.</li>
+      <li><b>Record the choice as its own tracked item by 30 September.</b> Today the exposure is a footnote in an export checklist, which is why it has no owner.</li>
+    </ul>
+
+    <h3>Hold the billing sequence <span class="tag good">Stay the course</span></h3>
+    <ul>
+      <li><b>Do not pull billing forward.</b> Attendance first is the cheapest test of whether instructors will adopt the new tool, and billing must watch one more year-end run before it can be trusted, so requests to see invoices or payments in the new system before 2027 should be declined.</li>
+      <li><b>Plan the processor handover as a dated event.</b> Choose a month when billing is not running, and retire the old system's card features the same day.</li>
+    </ul>
+
+    <h3>Reduce the single-person dependency <span class="tag caution">Resourcing</span></h3>
+    <ul>
+      <li><b>Add a second person to the decision loop.</b> A few hours a week from someone who reviews decisions and can act on the board gives the December commitment a backup owner.</li>
+      <li><b>Collect the institutional billing paperwork in one visit by 30 September.</b> It does not gate December, but it is the only way the 2027 billing work can start on facts instead of guesses.</li>
+    </ul>
+
+    <h3>Timeline at a glance</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>When</th><th>Outcome</th></tr></thead>
+        <tbody>
+          <tr><td>By 15 September 2026</td><td>Urgent staff answers returned; live-system export scheduled</td></tr>
+          <tr><td>By 22 September 2026</td><td>Remaining staff answers returned</td></tr>
+          <tr><td>By 30 September 2026</td><td>Interim card-number decision recorded; institutional billing paperwork collected</td></tr>
+          <tr><td>Early October 2026</td><td>December go or no-go decision made in the open</td></tr>
+          <tr><td>December 2026 closure</td><td>Instructors trained on the new attendance app during the two lesson-free weeks</td></tr>
+          <tr><td>January 2027</td><td>Attendance live, with a two-to-four-week parallel run against the old system</td></tr>
+          <tr><td>Spring 2027 at the earliest</td><td>Billing on the new system, after three clean shadow months</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Basis for this briefing</h2>
+    <p>This briefing covers 9 items on the project board (5 open, 4 closed), all created on 7 September 2026 and all assigned to one person. The business question register stands at 20 answered, 9 provisional, 11 open.</p>
+    <div class="tablewrap basis">
+      <table>
+        <thead><tr><th>Board item</th><th>Status</th><th>What it means for the business</th></tr></thead>
+        <tbody>
+          <tr><td>Overall decision map (#1)</td><td><span class="status open">Open</span></td><td>The running record of decisions and unknowns</td></tr>
+          <tr><td>Staff question batch 1 (#5)</td><td><span class="status open">Open</span></td><td>Written and ready; delivery to staff not confirmed on the board</td></tr>
+          <tr><td>Live-system data export (#6)</td><td><span class="status open">Open</span></td><td>Nothing exported yet; instructions ready; needs a full-access user</td></tr>
+          <tr><td>Daily staff searches list (#7)</td><td><span class="status open">Open</span></td><td>Half reconstructed; the other half waits on staff answers</td></tr>
+          <tr><td>Institutional billing paperwork (#9)</td><td><span class="status open">Open</span></td><td>Nothing collected yet; needs QuickBooks and portal access</td></tr>
+          <tr><td>Reconciling the question log against staff findings (#2)</td><td><span class="status closed">Closed 7 Sept</span></td><td>20 questions answered, 3 assumptions corrected, 4 new questions raised</td></tr>
+          <tr><td>Order of delivery (#3)</td><td><span class="status closed">Closed 7 Sept</span></td><td>Attendance first, December 2026 closure, billing after the year-end run</td></tr>
+          <tr><td>Institutional funding model (#4)</td><td><span class="status closed">Closed 7 Sept</span></td><td>No funding-balance tracking; track invoices and receivables instead</td></tr>
+          <tr><td>Payment-card continuity (#8)</td><td><span class="status closed">Closed 7 Sept</span></td><td>Existing stored cards carry over; new credentials disable the old system within a day</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Items marked as not confirmed reflect gaps in the board itself, not judgements about the people involved.</p>
+  </section>
+
+  <footer>Blue Buoy system replacement · leadership briefing · 8 September 2026</footer>
+</div>
