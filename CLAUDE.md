@@ -10,6 +10,7 @@ Blue Buoy is replacing a legacy FileMaker system (scheduling, billing, attendanc
 - **Open questions** — the decision each unanswered discovery question blocks: `docs/migration/open-questions.md`. Read before building anything that prices, enforces a rule, or migrates data.
 - **`qa.md`** — the staff discovery questionnaire. Round 2 answers (2026-09-10) are transcribed under the questions they answer, cited "Round 2 Qn"; the rest are still blank. Source of truth for the questions themselves. The earlier draft `qa1-1.md` renumbers everything from Q24 on: `qa.md` = `qa1-1.md` + 17.
 - **Blueprint page** — `docs/migration/bluebuoy-blueprint.html`, a stakeholder-facing rendering of `PLAN.md`. `PLAN.md` is the source of truth; changing it means re-rendering this page in the same edit.
+- **Executive summary** — `docs/migration/exec-summary.md` (+ `.html` rendering): non-technical briefing of the open GitHub issues for ownership, dated at the top. Regenerate it with the prompt in `docs/agents/exec-summary-prompt.md` when leadership asks for status or the open-issue set changes; the Markdown is the source and the HTML re-renders with it.
 
 ## Agent skills
 
