@@ -109,7 +109,7 @@ The brief's four entities map onto Blue Buoy as: **Customers** → `household` a
 - `payment_application` — `payment_id`, `invoice_id`, amount. One institutional check settling several students' invoices is the normal case.
 - `adjustment` — `invoice_id`, amount, `reason_code`, `created_by`. For genuine one-offs, once the routine cases stop needing one.
 - `billing_run` — period, mode (`dry_run`, `shadow`, `committed`), state, timestamps.
-| `billing_run_exception` — `run_id`, `household_id`, code, detail. The queue that replaces the spreadsheet cross-reference — including the code for an institutional student with no funding reference for the period, which retires the month-end phone-around, and `class_pack_deficit` for an adult who attended past an empty pack.
+- `billing_run_exception` — `run_id`, `household_id`, code, detail. The queue that replaces the spreadsheet cross-reference — including the code for an institutional student with no funding reference for the period, which retires the month-end phone-around, and `class_pack_deficit` for an adult who attended past an empty pack.
 
 > The institutional model above is [ADR-0002](../adr/0002-no-authorization-balance-tracking.md): **no authorization balance tracking** — the earlier cap-consumption design was a corrected over-design (package 2.10, Confirmed). QuickBooks stays the accounting system; the app reconciles with it. Service logs are gone from the model entirely: no payer requires documentation to release payment (qa.md Q12).
 
