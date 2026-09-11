@@ -529,6 +529,10 @@ New questions that surfaced after the original set went out.
 
 *Answer:* *(Round 2 Q20, answered 2026-09-10)* Only if we have to switch them from guarding to subbing for the day.
 
+**109\.  Make-ups and the Christmas cutoff** — the current system refuses to book a make-up into any lesson that ends after December 25 (its message: "This lesson cannot be used as a MU. End date is after Christmas"). Is that a deliberate rule — make-ups must be used within the calendar year — or a leftover from the annual rollover that nobody relies on? *(added 2026-09-10 from the system's own scripts)*
+
+*Answer:* 
+
 | Part 2: The Most Important Question |
 | :---- |
 

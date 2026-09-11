@@ -46,7 +46,7 @@ Tables not listed (`Documents`, `Notes`, `Audits`, `Virtual_List`, `Navigation M
 
 ### `Students` (9,367)
 
-`PrimaryKey`, `ID_Students`, `id_family`, `OLD_ID`, `OLD_STUD_ID`, `OLD_FAMILY_ID`, `Name_First`, `Name_Last`, `Name_Mid`, `Name_First_calc`, `Date_of_Birth`, `Age`, `Level`, `Status`, `Status_Recent`, `flag_active`, `flag_trashcan`, `flag_Special_Needs`, `flag_AD`, `flag_has_free_trial`, `flag_owes`, `Payment_Plan`, `Payment_Plan_CC_DD`, `Lesson_Type_1`, `Lesson_Type_2`, `Lesson_Type_3`, `Lesson_Type_4`, `Last_Lesson_Date_Start`, `Last_Lesson_Date_End`, `CreationTimestamp`, `ModificationTimestamp`
+`PrimaryKey`, `ID_Students`, `id_family`, `OLD_ID`, `OLD_STUD_ID`, `OLD_FAMILY_ID`, `Name_First`, `Name_Last`, `Name_Mid`, `Name_First_calc`, `Date_of_Birth`, `Age`, `Level`, `Status`, `Status_Recent`, `flag_active`, `flag_trashcan`, `flag_Special_Needs`, `flag_AD`, `flag_has_free_trial`, `flag_owes`, `Payment_Plan`, `Payment_Plan_CC_DD`, `Lesson_Type_1`, `Lesson_Type_2`, `Lesson_Type_3`, `Lesson_Type_4`, `Last_Lesson_Date_Start`, `Last_Lesson_Date_End`, `CreationTimestamp`, `ModificationTimestamp`, `MU_SP_Total`, `MU_PR_Total`, `MU_PM_Total`, `MU_ST_Total`, `MU_GR_Total`, `MU_Unknown_Total`
 
 `Name_First_calc` is `If(flag_Special_Needs; Upper(Name_First); Titlecase(Name_First))`, so the screen shows caps *because of* the flag. What we need is whether the **stored** `Name_First` is also typed in caps, and how often that happens without the flag. Both columns are required.
 
@@ -62,7 +62,7 @@ Largest table; the export takes a few minutes. Half a million rows at ~30 column
 
 ### `Lesson_Schedules` (126,251)
 
-`PrimaryKey`, `ID_Lesson_Schedule`, `id_student`, `id_family`, `id_staff`, `id_lesson`, `Instructor`, `Instructor_Nickname`, `Lesson_Type`, `Day`, `Time_Start`, `Time_End`, `Date_Start`, `Date_End`, `Pool_Used`, `Status`, `CreationTimestamp`, `ModificationTimestamp`
+`PrimaryKey`, `ID_Lesson_Schedule`, `id_student`, `id_family`, `id_staff`, `id_lesson`, `Instructor`, `Instructor_Nickname`, `Lesson_Type`, `Day`, `Time_Start`, `Time_End`, `Date_Start`, `Date_End`, `Pool_Used`, `Status`, `CreationTimestamp`, `ModificationTimestamp`, `Lesson_MU`, `Lesson_MU_to_use`, `Lesson_MU_Amount`
 
 ### `Lesson_Attendance` (334,399)
 
@@ -85,6 +85,8 @@ Largest table; the export takes a few minutes. Half a million rows at ~30 column
 Export **all** fields. Both are tiny and are the rate table and closure calendar in the raw.
 
 ## After exporting
+
+**Added 2026-09-10 (ADR-0003):** the six `MU_*_Total` counters on `Students` and the three `Lesson_MU*` fields on `Lesson_Schedules` are exported so the make-up ledger replay can be rehearsed against this export before Foundations: replayed balance (out-lessons issued minus make-ups redeemed, per denomination) versus the stored counter, per student. The profiler does not compute this yet; the import's own reconciliation step does, and the count of students whose replayed and stored balances differ is a Scheduling & search gate input.
 
 ```
 python scripts/profile_exports.py resources/exports/YYYY-MM-DD > docs/discovery/data-profile-YYYY-MM-DD.md

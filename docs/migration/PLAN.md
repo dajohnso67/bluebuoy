@@ -102,9 +102,9 @@ The brief's four entities map onto Blue Buoy as: **Customers** → `household` a
 - `price_agreement` — `enrollment_id`, amount, source (`list`, `sibling`, `prepay_lock`, `negotiated`), reason, date range.
 - `invoice` — `payer_id`, period, `issued_at`, status (`draft`, `submitted`, `partially_paid`, `paid`, `void`), `submitted_at`, submission method snapshot, total. Receivables aging is a query over open invoices by age.
 - `invoice_line` — `invoice_id`, `student_id`, `enrollment_id`, description, quantity, `unit_amount`, amount. `unit_amount` is a snapshot: reprinting a two-year-old invoice reproduces it exactly.
-- `credit` — subject, kind (`makeup`, `referral`, `gift`, `courtesy`, `account`), for make-ups a denomination (`private`, `semi_private`, `group`), amount or count, `valid_from`, `valid_to`, reason, `issued_by`.
-- `credit_application` — `credit_id`, target line or lesson, `applied_at`. Credit and application together form the ledger; a balance is a query, never a field.
-- `credit_event` — kind (`conversion`, `transfer`), source credit, count consumed, resulting credit, rate applied, actor, `at`. A conversion consumes N of one denomination and issues M of another at the table rate; a transfer moves credits between siblings in a household. Both are the hand-written notes staff keep today (Round 2 Q10), made explicable.
+- `credit` — subject, kind (`makeup`, `referral`, `gift`, `courtesy`, `account`), for make-ups a denomination (`private`, `semi_private`, `group`) and `origin_type` (the missed lesson's type, provenance only), count in whole lessons, `source_lesson_id`, `valid_from`, `valid_to` (stamped at issue from the `makeup_expiry_months` rule; null = never), reason, `issued_by`. Adult absences issue no credit — class packs cover attendance.
+- `credit_application` — `credit_id`, target line or lesson, status (`reserved` → `consumed`, or `released`), `reserved_at`, `consumed_at`. Booking a make-up reserves the credit, the lesson occurring consumes it, a school-cancelled make-up releases it; a reserved credit is protected from the expiry sweep. Credit and application together form the ledger; a balance is a query, never a field.
+- `credit_event` — kind (`conversion`, `transfer`, `reversal`, `expiry`, `void`), source credit, count consumed, resulting credit, rate applied, actor, `at`. A conversion consumes exactly `from_count` of one denomination and issues exactly `to_count` of another at the table rate, the new credit inheriting the earliest source `valid_to`; a transfer moves credits between siblings in a household, keeping origin and expiry; a reversal negates an earlier event and is management-only. The ledger is append-only. These are the hand-written notes staff keep today (Round 2 Q10), made explicable — settled by [ADR-0003](../adr/0003-denominated-makeup-credit-ledger.md).
 - `payment` — `payer_id`, amount, method, reference (check number, gateway txn id), `received_at`, `settled_at`. No cap on payments per month.
 - `payment_application` — `payment_id`, `invoice_id`, amount. One institutional check settling several students' invoices is the normal case.
 - `adjustment` — `invoice_id`, amount, `reason_code`, `created_by`. For genuine one-offs, once the routine cases stop needing one.
@@ -113,7 +113,7 @@ The brief's four entities map onto Blue Buoy as: **Customers** → `household` a
 
 > The institutional model above is [ADR-0002](../adr/0002-no-authorization-balance-tracking.md): **no authorization balance tracking** — the earlier cap-consumption design was a corrected over-design (package 2.10, Confirmed). QuickBooks stays the accounting system; the app reconciles with it. Service logs are gone from the model entirely: no payer requires documentation to release payment (qa.md Q12).
 
-> The credit model is **one denominated system, not six balances** — Round 2 confirmed the exchange rates, that every direction is allowed, that staff choose at redemption, and that credits move between siblings (qa.md Q100). Outstanding liability is valued in a common denomination: 24 semi-private credits are also 12 private lessons. The ledger's design is a wayfinder ticket; the shape above is its working form.
+> The credit model is **one denominated system, not six balances** — Round 2 confirmed the exchange rates, that every direction is allowed, that staff choose at redemption, and that credits move between siblings (qa.md Q100), and the DDR then showed FileMaker's six `MU_*_Total` counters were never balances but derived sums of out-lessons issued minus make-ups redeemed, with the redeemed type already recorded per booking. [ADR-0003](../adr/0003-denominated-makeup-credit-ledger.md) settles the shape above: three denominations, whole-lesson units, conversion inside redemption, reserve-then-consume, expiry as a rule row, liability valued in private-lesson equivalents, and an import that **replays** history rather than copying counters.
 
 **Flags, notes, documents**
 
@@ -172,6 +172,7 @@ Each trigger becomes a named event the service publishes and handlers subscribe 
 | `attendance.marked` | Advance progression signals, feed the coverage view, consume a class-pack lesson for an Adult marked present |
 | `invoice.issued` | Render the PDF, attach it to the payer, start the terms clock |
 | `payment.failed` | Raise an exception, notify the office, flag the card |
+| `makeup.booked` / `makeup.cancelled` | Reserve the credit (converting first if staff chose to) / release it in the denomination it holds |
 | `credit.converted` / `credit.transferred` | Consume the source credits, issue the target at the table rate or to the sibling, record the actor |
 
 ### Scheduled server scripts become cron jobs
@@ -181,7 +182,7 @@ Each holds a Postgres advisory lock and is idempotent on its period key, so a re
 | Job | Cadence | Does |
 | --- | --- | --- |
 | Billing run | Monthly | Prices active enrollments, raises exceptions, issues invoices on commit |
-| Credit expiry sweep | Nightly | Expires credits past `valid_to`, which is what retires the manual referral reset |
+| Credit expiry sweep | Nightly | Expires credits past `valid_to` — never a reserved one — as an `expiry` event; this is also what retires the manual referral reset |
 | Card expiry notice | Weekly | Surfaces cards on file about to lapse, ahead of a failed charge |
 | Lesson materialization | Nightly | Extends `lesson` rows from `slot` definitions across the rolling window |
 | Progression and attrition signals | Weekly | Feeds the Part 3 reports, all of them queries over the model above — including the two-weeks-absent-without-notice list staff asked for (Round 2 Q15) |
@@ -196,7 +197,7 @@ This is the design answer to Q24–Q34. The month-end work becomes clearing a sh
 
 ### Rules live as data
 
-Eligibility bars, sibling discount steps, the first-responder percentage, prepay tiers, make-up conversion rates, closure credit policy, cancellation cutoffs, and the Adult no-show rule are rows, not code. Answers to `qa.md` arrive as configuration a staff member can change, and each carries `effective_from`, so changing a rule leaves last year's invoices reproducible.
+Eligibility bars, sibling discount steps, the first-responder percentage, prepay tiers, make-up conversion rates, make-up expiry (`makeup_expiry_months`) and the legacy Christmas redemption boundary (`makeup_redeem_before`, qa.md Q109), closure credit policy, cancellation cutoffs, and the Adult no-show rule are rows, not code. Answers to `qa.md` arrive as configuration a staff member can change, and each carries `effective_from`, so changing a rule leaves last year's invoices reproducible.
 
 ## 4. API Contract & Integration Outline
 
@@ -244,7 +245,7 @@ POST /api/v1/schedule/check
 | `GET` | `/api/v1/payers/{id}/receivables` | Open invoices aged: outstanding, per payer, for how long |
 | `POST` | `/api/v1/payers/{id}/invoices` | Month-end institutional invoice batch for a period |
 | `GET` | `/api/v1/students/{id}/credits` | Credit ledger and balance, per denomination |
-| `POST` | `/api/v1/students/{id}/credits/convert` | Exchange credits between denominations at the table rate, recorded as an event |
+| `POST` | `/api/v1/students/{id}/credits/convert` | Exchange credits between denominations at the table rate, recorded as an event; called inside make-up booking, standalone for management only |
 | `POST` | `/api/v1/households/{id}/credits/transfer` | Move credits between siblings, recorded as an event |
 | `GET` | `/api/v1/reports/enrollment-weekly` | Enrollment by class type per week against prior years — the daily hand-built Excel sheet |
 
@@ -274,9 +275,11 @@ The strict slice from ADR-0001: roster view on all form factors (tablet-first), 
 
 ### Scheduling & search
 
-Enrollment, schedule editing, waitlist, closures, and search. Search is the phase's centre of gravity, not a feature within it: `saved_search` plus a criteria builder reaching every field staff currently search, seeded with the Saved Finds Q56 names. Plus make-up credit issuance and redemption — including conversion between denominations and sibling transfers — closure handling (scheduled vs incidental, with bulk make-ups), eligibility validation with override and per-class group bands, one-day repurposing of an empty group slot, the absence lookup as an instant action on the schedule board, the substitute-finding flow with its three constraints (instructor gender, level pairing, sibling proximity), and the deck-manager tools held out of the December slice.
+Enrollment, schedule editing, waitlist, closures, and search. Search is the phase's centre of gravity, not a feature within it: `saved_search` plus a criteria builder reaching every field staff currently search, seeded with the Saved Finds Q56 names. Plus make-up credit issuance and redemption — including conversion between denominations and sibling transfers, per [ADR-0003](../adr/0003-denominated-makeup-credit-ledger.md) — closure handling (scheduled vs incidental, with bulk make-ups), eligibility validation with override and per-class group bands, one-day repurposing of an empty group slot, the absence lookup as an instant action on the schedule board, the substitute-finding flow with its three constraints (instructor gender, level pairing, sibling proximity), and the deck-manager tools held out of the December slice.
 
-**Gate:** every search in the [parity enumeration](../discovery/search-parity-enumeration.md) — the scripted and structured searches the DDR encodes plus the daily finds and Saved Finds from Q55–Q58 — returns the same set as FileMaker on the same data, and deck staff run one full week of real scheduling in the new UI alongside the old, including one full make-up cycle.
+The make-up ledger imports here by **replay**: every `Lesson_Out` row becomes an issued credit (rows flagged do-not-issue import as issued-then-voided), every make-up on `Lesson_Schedules` a consumption in the denomination `Lesson_MU_to_use` names, and the replayed balance is compared per student to the stored `MU_*_Total` — every difference is a reconciliation exception, with two known causes already named (an attendance script that edits counters directly; the do-not-issue flag that never suppressed the credit flag).
+
+**Gate:** replayed make-up balances match FileMaker's stored counters per student, or every difference is classified; every search in the [parity enumeration](../discovery/search-parity-enumeration.md) — the scripted and structured searches the DDR encodes plus the daily finds and Saved Finds from Q55–Q58 — returns the same set as FileMaker on the same data, and deck staff run one full week of real scheduling in the new UI alongside the old, including one full make-up cycle.
 
 ### Billing
 

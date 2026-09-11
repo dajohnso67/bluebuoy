@@ -640,7 +640,7 @@
               <li><b>payment_application</b>One institutional check settling several students' invoices is the normal case; invoices carry a submitted → paid lifecycle, so receivables aging is a query.</li>
               <li><b>price_agreement</b>The rate this enrollment pays, its reason, and the dates it holds.</li>
               <li><b>invoice · invoice_line</b>Line unit amounts are snapshots: reprinting a two-year-old invoice reproduces it exactly.</li>
-              <li><b>credit · credit_application · credit_event</b>One denominated ledger — private, semi-private, group — with conversions and sibling transfers recorded as events. A balance is a query, never a field.</li>
+              <li><b>credit · credit_application · credit_event</b>One denominated ledger — private, semi-private, group — in whole-lesson units (ADR-0003). Booking a make-up reserves a credit, the lesson consumes it, a school cancellation releases it; conversions, sibling transfers, reversals and expiries are events, and nothing is deleted. Expiry is a rule row. Adult absences issue no credit. A balance is a query, never a field.</li>
               <li><b>payment</b>No cap on payments per month.</li>
               <li><b>billing_run · exception</b>The queue that replaces the spreadsheet cross-reference.</li>
             </ul>
@@ -720,6 +720,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
               <tr><td class="mono nw">attendance.marked</td><td>Advance progression signals, feed the coverage view, consume a class-pack lesson for an Adult marked present</td></tr>
               <tr><td class="mono nw">invoice.issued</td><td>Render the PDF, attach it to the payer, start the terms clock</td></tr>
               <tr><td class="mono nw">payment.failed</td><td>Raise an exception, notify the office, flag the card</td></tr>
+              <tr><td class="mono nw">makeup.booked · makeup.cancelled</td><td>Reserve the credit (converting first if staff chose to) / release it</td></tr>
               <tr><td class="mono nw">credit.converted · credit.transferred</td><td>Consume the source credits, issue the target at the table rate or to the sibling, record the actor</td></tr>
             </tbody>
           </table>
@@ -732,7 +733,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
             <thead><tr><th>Job</th><th>Cadence</th><th>Does</th></tr></thead>
             <tbody>
               <tr><td class="nw">Billing run</td><td class="mono nw">Monthly</td><td>Prices active enrollments, raises exceptions, issues invoices on commit</td></tr>
-              <tr><td class="nw">Credit expiry sweep</td><td class="mono nw">Nightly</td><td>Expires credits past their validity, which is what retires the manual referral reset</td></tr>
+              <tr><td class="nw">Credit expiry sweep</td><td class="mono nw">Nightly</td><td>Expires credits past their validity — never a reserved one — as an event; this is also what retires the manual referral reset</td></tr>
               <tr><td class="nw">Card expiry notice</td><td class="mono nw">Weekly</td><td>Surfaces cards on file about to lapse, ahead of a failed charge</td></tr>
               <tr><td class="nw">Lesson materialization</td><td class="mono nw">Nightly</td><td>Extends lesson rows from slot definitions across the rolling window</td></tr>
               <tr><td class="nw">Progression signals</td><td class="mono nw">Weekly</td><td>Feeds the attrition and level-progression reports, all of them queries over the model above — including the two-weeks-absent-without-notice list staff asked for</td></tr>
@@ -753,7 +754,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
         <p>The month-end work becomes clearing a short exception list rather than performing the whole run by hand.</p>
 
         <h3>Rules live as data</h3>
-        <p>Eligibility bars, sibling discount steps, the first-responder percentage, prepay tiers, make-up conversion rates, closure credit policy, cancellation cutoffs, and the Adult no-show rule are rows, not code. Staff answers arrive as configuration a staff member can change, and each carries an effective date, so changing a rule leaves last year's invoices reproducible.</p>
+        <p>Eligibility bars, sibling discount steps, the first-responder percentage, prepay tiers, make-up conversion rates, make-up expiry and the legacy Christmas redemption boundary, closure credit policy, cancellation cutoffs, and the Adult no-show rule are rows, not code. Staff answers arrive as configuration a staff member can change, and each carries an effective date, so changing a rule leaves last year's invoices reproducible.</p>
       </section>
 
       <section id="s4">
@@ -798,7 +799,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
               <tr><td class="method">GET</td><td class="mono nw">/api/v1/payers/{id}/receivables</td><td>Open invoices aged: outstanding, per payer, for how long</td></tr>
               <tr><td class="method">POST</td><td class="mono nw">/api/v1/payers/{id}/invoices</td><td>Month-end institutional invoice batch for a period</td></tr>
               <tr><td class="method">GET</td><td class="mono nw">/api/v1/students/{id}/credits</td><td>Credit ledger and balance, per denomination</td></tr>
-              <tr><td class="method">POST</td><td class="mono nw">/api/v1/students/{id}/credits/convert</td><td>Exchange credits between denominations at the table rate, recorded as an event</td></tr>
+              <tr><td class="method">POST</td><td class="mono nw">/api/v1/students/{id}/credits/convert</td><td>Exchange credits between denominations at the table rate, recorded as an event; inside make-up booking, standalone for management only</td></tr>
               <tr><td class="method">POST</td><td class="mono nw">/api/v1/households/{id}/credits/transfer</td><td>Move credits between siblings, recorded as an event</td></tr>
               <tr><td class="method">GET</td><td class="mono nw">/api/v1/reports/enrollment-weekly</td><td>Enrollment by class type per week against prior years — the daily hand-built Excel sheet</td></tr>
             </tbody>
@@ -841,8 +842,9 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
           <div class="num">3</div>
           <div>
             <h3>Scheduling &amp; search</h3>
-            <p>Enrollment, schedule editing, waitlist, closures, and search. Search is the phase's centre of gravity, not a feature within it: a saved-search model plus a criteria builder reaching every field staff currently search, seeded with the Saved Finds they name. Plus make-up credit issuance and redemption — including conversion between denominations and sibling transfers — closure handling with bulk make-ups, eligibility validation with override and per-class group bands, one-day repurposing of an empty group slot, the absence lookup as an instant action on the schedule board, the substitute-finding flow with its three constraints (instructor gender, level pairing, sibling proximity), and the deck-manager tools held out of the December slice.</p>
-            <div class="gate"><span class="tag">Gate</span><p>Every search in the parity enumeration &mdash; the system's own scripted and structured searches plus the daily finds and Saved Finds staff name &mdash; returns the same set as FileMaker on the same data, and deck staff run one full week of real scheduling in the new UI alongside the old, including one full make-up cycle.</p></div>
+            <p>Enrollment, schedule editing, waitlist, closures, and search. Search is the phase's centre of gravity, not a feature within it: a saved-search model plus a criteria builder reaching every field staff currently search, seeded with the Saved Finds they name. Plus make-up credit issuance and redemption — including conversion between denominations and sibling transfers, per ADR-0003 — closure handling with bulk make-ups, eligibility validation with override and per-class group bands, one-day repurposing of an empty group slot, the absence lookup as an instant action on the schedule board, the substitute-finding flow with its three constraints (instructor gender, level pairing, sibling proximity), and the deck-manager tools held out of the December slice.</p>
+            <p>The make-up ledger imports here by <strong>replay</strong>: every out-lesson becomes an issued credit, every booked make-up a consumption in the denomination it names, and the replayed balance is compared per student to FileMaker's stored counters — every difference a reconciliation exception, two causes already known.</p>
+            <div class="gate"><span class="tag">Gate</span><p>Replayed make-up balances match FileMaker's stored counters per student, or every difference is classified; every search in the parity enumeration &mdash; the system's own scripted and structured searches plus the daily finds and Saved Finds staff name &mdash; returns the same set as FileMaker on the same data, and deck staff run one full week of real scheduling in the new UI alongside the old, including one full make-up cycle.</p></div>
           </div>
         </div>
 
