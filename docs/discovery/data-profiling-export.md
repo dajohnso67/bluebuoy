@@ -7,7 +7,7 @@ Record counts below are from the DDR generated **2026-08-17** from `BlueBuoy_FM.
 
 ## Before exporting
 
-1. **Export from the file staff use every day.** Batch 1 question A1 (qa.md Q99) asks whether that is `BlueBuoy_FM` or `BlueBuoy_FM_2024`. Note which one you exported from in the resolution; if it is `_2024`, the DDR may be stale and the field list below needs re-checking.
+1. **Export from `BlueBuoy_FM`.** Round 2 (qa.md Q99, answered 2026-09-10) confirmed it is the live file, so the DDR and the field list below are canonical. `BlueBuoy_FM_2024` is an archive of families idle for ten years; add a **second, smaller export from it** — `Families` and `Students` only, the same fields — into `resources/exports/YYYY-MM-DD/archive/`, so the archive decision (what the import does with those families) has row counts and date ranges to stand on.
 2. Log in with a **Full Access** account. Export needs the *Allow exporting* privilege.
 3. Work in FileMaker Pro (desktop), not WebDirect.
 

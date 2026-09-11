@@ -205,7 +205,7 @@ We believe the setup is Affinity24 (Tustin) as the processor, Authorize.Net as t
 
 **36\.  Roughly what's the monthly credit card volume?** (Not counting charter school / Regional Center payments, which come by check.)
 
-*Answer:* 
+*Answer:* *(Round 2 Q17, answered 2026-09-10)* This is about how many students/families we process per month [the earlier "550–700"]. Monthly credit card volume ranges from ~$156,000–207,000. Charter schools that pay by direct deposit or check have increased in volume to ~15% of income. Estimated 2026 total gross income: $2,650,000.
 
 **37\.  Do you know your effective processing rate?** It's usually on the monthly statement.
 
@@ -309,7 +309,7 @@ We saw the Deck Manager search screen and it's genuinely powerful. The biggest w
 
 **59\.  Do group lessons work differently** from private/semi-private in ways we should know about — scheduling, pricing, make-ups?
 
-*Answer:* 
+*Answer:* *(Round 2 Q1–Q5, answered 2026-09-10)* **Minimum:** we keep the class open as group whether there is 1 student or none. The only exception is if the class is completely open for the day and we need a sub for another teacher — we will use the class for other options (SP, PR, M SP, M PR, or PM). **Price:** stays the same regardless of how many students. **Sibling discount:** we usually try to use the group class as the first lesson; that way the more expensive classes get the discounted prices. **Make-ups:** group make-ups (GR, ST, PM) can be used either as their lesson type or, if the family has more than one group make-up, converted: 2 = 1 Semi-Private make-up, 4 = 1 Private make-up. **Joining:** there are set times for all the different group classes we offer; that schedule typically stays the same year after year. To join Stroke Tech or Stroke Prep the student must meet the age and swim-level requirement.
 
 ## **Class Types & Eligibility**
 
@@ -317,11 +317,11 @@ We have approximate requirements but need them confirmed exactly, since the syst
 
 **60\.  What are the exact requirements for each class type?** Our current understanding (likely imprecise): Parent & Me is age 3 and under; Group needs age 7+ and level 8+; Stroke Tech needs age 10+ and level 10+. Please correct.
 
-*Answer:* 
+*Answer:* *(Round 2 Q5, answered 2026-09-10)* Stroke Prep (Group): ages 7 and older, swim level 9–12. Stroke Tech: ages 10 and older, swim level 10–12. Parent & Me: no level requirement, ages 0–3. *[Transcription note: the Deck Manager screenshot returned with Round 2 shows one Group class banded `AGE 7+ lv 8/9/10` next to one banded `AGE 7+ lv 9-10`, so bands are set per class and at least one admits level 8. Keep the bar per class, not per type.]*
 
 **61\.  Are there requirements for the other types** — Private, Semi-Private, Adult — or can anyone take those?
 
-*Answer:* 
+*Answer:* *(Round 2 Q6, answered 2026-09-10 — Adult only; Private and Semi-Private still unanswered)* The Adult class is a group class; I believe it can have up to 6 in a class, age 16 or older. Payment is set up differently: they can pay for a single class, a package of 4, or a package of 8 lessons. We only take a lesson from their account if they show for a class (based on the teacher's roll for the day). However, we run into a problem that the adult doesn't notify us if they will be out. We need to look into a way to improve on this.
 
 **62\.  Is it always age AND level**, or does one sometimes substitute for the other? (E.g. a strong 6-year-old at level 9 — could they join Group?)
 
@@ -487,21 +487,47 @@ We have approximate requirements but need them confirmed exactly, since the syst
 
 New questions that surfaced after the original set went out.
 
+**Round 2 (answered 2026-09-10).** A second, separately numbered document — [`docs/migration/BlueBuoy_Round2_Questions.docx.md`](./docs/migration/BlueBuoy_Round2_Questions.docx.md), Round 2 Q1–Q20 — came back answered out of band. Its answers are transcribed here under the `qa.md` question they answer, each citing "Round 2 Qn"; questions it asked that had no `qa.md` counterpart are added below as Q103–Q108.
+
 **99\.  Which FileMaker file is the live one — `BlueBuoy_FM` or `BlueBuoy_FM_2024`?** Both exist on the server; we analyzed `BlueBuoy_FM` and need to know whether that's the one in daily use. (For whoever manages the FileMaker server.)
 
-*Answer:* 
+*Answer:* *(Round 2 Q18, answered 2026-09-10)* We use `BlueBuoy_FM` currently. `FM_2024` is a history file. What happens is our system slows due to too many files, so we archive families that have not been enrolled for 10 years. We still need access to the old files (rarely) but need to see, just in case a family returns years later.
 
 **100\.  Make-up credit conversion between lesson types** — we heard credits can be traded across types (something like a few group credits equaling one semi-private, and about four group equaling one private). Is that right? What are the actual ratios, which directions are allowed (can a private credit be split into group credits?), and does someone approve each conversion or is it automatic?
 
-*Answer:* 
+*Answer:* *(Round 2 Q7–Q11, answered 2026-09-10)* Yes. 2 Semi-Private make-ups = 1 Private make-up; 1 Private make-up = 2 Semi-Private make-ups; 2 Group (ST, GR, PM) = 1 Semi-Private make-up; 4 Group (ST, GR, PM) = 1 Private make-up; 1 Private make-up = 4 Group make-ups. **Which conversions are allowed** (group → semi-private, group → private, semi-private → private): yes. **Reverse** (a private credit split into several group credits): yes. **Who decides:** when scheduling the make-up we choose which option we want to use. However, when moving make-ups between siblings we note how many make-ups and what type were moved from one child to the other. **Existing private credits when a student switches to group:** they stay as Private make-ups and can be used as either Private or converted to other make-up options.
 
 **101\.  The military discount** — how much is it, and does it stack with the sibling and prepay discounts?
 
-*Answer:* 
+*Answer:* *(Round 2 Q16, answered 2026-09-10)* Yes, we offer an additional 10% discount for first responders (military, police, and fire department). We ask them to provide ID to verify; I would like an option to flag whether this has been provided. Yes, the discount stacks on both the sibling and prepay discounts.
 
 **102\.  When you offer a family a make-up slot, how long should they get to answer** before the offer moves on to the next family? Today this is informal — we want to put a real clock on it, so tell us what feels right (a few hours, a day, ...).
 
 *Answer:* 
+
+**103\.  What reports do you run regularly?** Weekly, monthly, whenever — even the boring ones. *(Round 2 Q12)*
+
+*Answer:* *(Round 2 Q12, answered 2026-09-10)* **Daily:** weekly enrollment by lesson type vs the same period in previous year(s). The search for student enrollment for each weekly period / lesson type (less make-up lessons or sub for teacher) is done manually and entered manually into an Excel spreadsheet. Representative rows (columns SP · PRI · PM · ST · GR · AD · TOTAL · week · prior-year total · increase): 790 · 155 · 127 · 8 · 34 · 2 · 1116 · <1/1/26 · 1056 · 60; 698 · 142 · 121 · 7 · 29 · 3 · 1000 · <1/4/26 · 938 · 62; 769 · 151 · 123 · 7 · 34 · 3 · 1087 · <1/11/26 · 1030 · 57; 778 · 150 · 126 · 8 · 34 · 3 · 1099 · <1/18/26 · 997 · 102; 764 · 149 · 135 · 8 · 34 · 3 · 1093 · <1/25/26 · 1049 · 44; 805 · 155 · 134 · 8 · 36 · 3 · 1141 · <2/1/26 · 1073 · 68; 808 · 150 · 135 · 9 · 33 · 3 · 1138 · <2/8/26 · 1071 · 67; 818 · 154 · 135 · 9 · 33 · 3 · 1152 · <2/15/26 · 1079 · 73; 807 · 150 · 130 · 9 · 33 · 3 · 1132 · <2/22/26 · 1061 · 71. **Daily:** reports on free trials or make-up trials that came in the day before — we call the families to follow up and see if they would like to enroll in the times tried, or if the teacher did not think it was a good match, or if the time did not work, to find a new opening. Notes from the pool deck or teachers about any lesson changes, requests, or impromptu make-ups scheduled after our scheduling office closed. [Screenshot 1: the four report buttons.] **Weekly/monthly:** a waitlist report of open requests, to check on spots that might have opened on the schedule board — we hope this can be eliminated and set up automatically. **Monthly:** a search for enrolled students' prepays that will be ending in the current month and still have open enrollment going into next month; we send reminders via text and email about prepaying again, or their account changes to auto-billing starting the 1st. **Monthly:** a search for currently enrolled students to check that their monthly tuition payment matches the Authorize.Net batch that will process on the 1st of the new month. **Daily / week of:** when looking for make-ups for the day, a button on top of our schedule board finds students that have reported an absence. [Screenshot 2: the `Search Out` button.]
+
+**104\.  Does anything get printed or exported** — to your accountant, to charter schools, to Regional Center? *(Round 2 Q13)*
+
+*Answer:* *(Round 2 Q13, answered 2026-09-10)* QuickBooks General Ledger, P&L, and Balance Sheet are exported to the accountant for the previous calendar year in Jan/Feb for preparation of tax returns. Jen keeps an Excel spreadsheet for students with Regional Center payments, so we can keep track of what is behind and what has been paid. [Screenshot 3: that spreadsheet.]
+
+**105\.  Is there a report you rely on that would be painful to lose?** *(Round 2 Q14)*
+
+*Answer:* *(Round 2 Q14, answered 2026-09-10)* Looking for absences — this is really a scheduling feature instead of a report, but we still need it; we use it all day. Reports on free trials / make-up trials, notes from deck and instructors. Also the attendance sheet on each student's account. [Screenshot 4: a student's attendance layout.]
+
+**106\.  Is there a report you wish existed** but doesn't? *(Round 2 Q15)*
+
+*Answer:* *(Round 2 Q15, answered 2026-09-10)* A quick summary of monthly tuition for students on our auto-pay. A report of students that have not shown for more than 2 weeks without notice. Changes of lesson type for ongoing enrollment — for example a change from Parent & Me to Semi-Private, which changes billing — so we can make adjustments to either the prepay or the monthly rate.
+
+**107\.  How is a substitute found today** when a teacher calls out? Walk us through it. *(Round 2 Q19)*
+
+*Answer:* *(Round 2 Q19, answered 2026-09-10)* We look at the schedule of the teacher who is out and cross-reference other teachers who work during that time to see what openings they have: an open spot, a student out, or a student starting the week after (making the current day available). Sometimes we need to be aware that the student has special requests — female-only teachers, to be paired higher or lower, or a sibling enrolled around that time, in which case we want a spot either at the same time or right after for the student who needs the sub. When we can't find anything we look around that time, or at the student's availability from previous requests, to see what we can offer if they have flexibility for the day. When all else fails we have an on-call teacher take the lessons we could not fill.
+
+**108\.  Has a lesson ever been scheduled during someone's lifeguard shift** by mistake? (Our system won't know about guard shifts — those only live in Humanity.) *(Round 2 Q20)*
+
+*Answer:* *(Round 2 Q20, answered 2026-09-10)* Only if we have to switch them from guarding to subbing for the day.
 
 | Part 2: The Most Important Question |
 | :---- |
@@ -538,6 +564,8 @@ Rate them however you like: "yes please," "nice but not important," or "we'd nev
 
 | Part 4: Screenshots That Would Help |
 | :---- |
+
+*Round 2 (2026-09-10) returned eight screenshots: the report buttons, the absence lookup, the Regional Center payment spreadsheet, a student attendance layout, group classes on the Deck Manager schedule, a student account with its waitlist section, the waitlist report, and the fmSMS screen (which names the gateway: Twilio). They contain family names and contact details, so they live only in the gitignored original of the Round 2 document.*
 
 If it's easy to grab these while you're working, they'd help a lot. No need to stage anything — normal working screens are ideal.
 

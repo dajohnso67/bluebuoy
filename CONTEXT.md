@@ -10,16 +10,19 @@ Seeded from the FileMaker analysis and [`qa.md`](./qa.md). Terms marked **open**
 - **Person** — a human record: student, guardian, billing contact, instructor. One person holds several roles; an adult student is a person who is both student and billing contact.
 - **Student** — a person enrolled in lessons. Carries level, date of birth, and flags.
 - **Account** — **open**: whether the household or the student is the unit that owes money. FileMaker tracks both and neither clearly wins (qa.md Q49). Every billing surface waits on this.
+- **Archived household** — a family moved out of the live FileMaker file after ten idle years (`BlueBuoy_FM_2024`). Restorable, never deleted; what the import does with them is **open** (qa.md Q99, the archive row).
 
 ## Catalog
 
-- **Class type** — Parent & Me, Group, Semi-Private, Private, Stroke Tech, Adult.
+- **Class type** — Parent & Me, Group (staff also say Stroke Prep), Semi-Private, Private, Stroke Tech, Adult. The three group types and Adult cap at six; group classes run on a fixed annual timetable, so joining one is a seat question (qa.md Q59, answered).
+- **Group band** — the age-and-level range one particular group class admits, as the deck screen shows it (`AGE 7+ lv 8/9/10`). An eligibility rule scoped to a slot rather than a type.
 - **Level** — the ordinal skill rank a student sits at. Combines with age to decide eligibility.
-- **Eligibility rule** — the age-and-level bar for a class type, held as data rather than code so a confirmed answer lands as a row (qa.md Q60–Q63).
+- **Eligibility rule** — the age-and-level bar for a class type, or for one slot, held as data rather than code so a confirmed answer lands as a row (qa.md Q60–Q63; the group bars are answered, Private and Semi-Private are not).
 
 ## Scheduling
 
 - **Slot** — a recurring place on the schedule: instructor, weekday, time, class type, capacity. The thing a family holds week to week.
+- **Slot repurpose** — an empty group slot lent for one day to other lesson types when a substitute is needed. A dated override, never an edit to the slot (qa.md Q59, answered).
 - **Enrollment** — a student's claim on a slot over a date range. The billable relationship.
 - **Lesson** — one dated occurrence of a slot. The thing attended, cancelled, or made up.
 - **Attendance** — a student's outcome for a lesson, plus who marked it and on which device.
@@ -33,7 +36,11 @@ Seeded from the FileMaker analysis and [`qa.md`](./qa.md). Terms marked **open**
 - **Price agreement** — the rate a given enrollment is actually charged, with its reason (list price, sibling step, prepay lock, negotiated institutional rate) and the dates it holds. The record that makes a locked prepay rate survive a price rise without monthly hand-correction.
 - **Snapshot price** — the amount resolved onto an invoice line at issue. Reprinting an old invoice reproduces it exactly, because nothing recomputes.
 - **Credit ledger** — the append-only record of credits issued and consumed: make-up, referral, gift certificate, courtesy, account. A balance is a query over it, never a field someone must remember to reset.
-- **Make-up credit** — a credit issued when a lesson is missed or cancelled by the school, spendable on a future lesson.
+- **Make-up credit** — a credit issued when a lesson is missed or cancelled by the school, spendable on a future lesson. Denominated **private**, **semi-private**, or **group** (Group, Stroke Tech and Parent & Me are one denomination) and convertible between denominations at the conversion table's rates, in either direction, when redeemed (qa.md Q100, answered).
+- **Conversion rate** — a row in the exchange table: two semi-private make one private, two group make one semi-private, four group make one private. Data, not code.
+- **Credit transfer** — moving make-up credits from one sibling to another inside a household, recorded as an event with an author. Today a hand-written note.
+- **Class pack** — the Adult class's unit of payment: one, four, or eight lessons bought up front and consumed only when the roll marks the adult present. Not monthly tuition (qa.md Q61, answered for Adult).
+- **First-responder discount** — ten percent off for military, police and fire families, stacking with sibling steps and prepay; carries whether ID was verified (qa.md Q101, answered).
 - **Billing run** — the month-end process that prices every active enrollment and issues invoices. Runs in three modes: dry run, shadow, committed.
 - **Exception** — a household the billing run declines to price without a human look. Replaces the spreadsheet cross-reference.
 - **Adjustment** — a deliberate one-off correction to an invoice, with a reason and an author. Kept for real one-offs, once the routine cases become price agreements and credits.

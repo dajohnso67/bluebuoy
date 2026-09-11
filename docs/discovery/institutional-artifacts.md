@@ -1,7 +1,7 @@
 # Institutional billing artifacts — collection checklist
 
 **Wayfinder ticket:** [Institutional billing artifacts](https://github.com/dajohnso67/bluebuoy/issues/9).
-**Why:** charter-school and Regional Center billing has no trace in FileMaker (package 2.9, Confirmed). [ADR-0002](../adr/0002-no-authorization-balance-tracking.md) decided the payer model; three details of it, and the Institutional payers gate in `PLAN.md` §5, wait on seeing the real paperwork. This page lists exactly what to collect, what each artifact settles, and where it goes. Nothing here asks staff a question; it asks for things that already exist.
+**Why:** charter-school and Regional Center billing has no trace in FileMaker (package 2.10, Confirmed). [ADR-0002](../adr/0002-no-authorization-balance-tracking.md) decided the payer model; three details of it, and the Institutional payers gate in `PLAN.md` §5, wait on seeing the real paperwork. This page lists exactly what to collect, what each artifact settles, and where it goes. Nothing here asks staff a question; it asks for things that already exist.
 
 ## Where artifacts go
 
@@ -89,7 +89,7 @@ Minimum set is A1, B1, B2, C1 and C2, D1. The rest sharpen the same decisions an
 
 | Id | File | Source | Date of artifact | Redacted | Notes |
 | --- | --- | --- | --- | --- | --- |
-| | | | | | |
+| B3 (partial) | screenshot 3 inside `resources/artifacts/institutional/BlueBuoy_Round2_Questions.docx.md` (gitignored) | Round 2 answers, qa.md Q104 | 2026-09 | no — student names and agency ids visible; do not copy out | The Regional Center tracking sheet exists and is Excel: one tab per agency, one row per student, one column per month holding the paid date, open amounts in red with a note when the agency was chased. Confirms B3; QuickBooks holds the books (GL, P&L, balance sheet exported annually), so the sheet is the receivables trail for Regional Center, not a copy of QuickBooks. B1 and B2 still needed. |
 
 ## Facts settled
 
@@ -104,7 +104,7 @@ Minimum set is A1, B1, B2, C1 and C2, D1. The rest sharpen the same decisions an
 | Payment terms | | A1 |
 | QuickBooks edition and customer structure | | B2, B5 |
 | One check to many invoices confirmed; partial applications | | B4 |
-| Notes trail is a copy of QuickBooks, or the only record | | B1, B3 |
+| Notes trail is a copy of QuickBooks, or the only record | Partly: for Regional Center the Excel sheet is the receivables record (paid date per student per month), QuickBooks the books. Charter side still unknown. | B1, B3 (Round 2) |
 | Portal 1: what is entered, what comes back, replaces or accompanies invoice | | C1, C4 |
 | Portal 2: same | | C2, C4 |
 | Method per school (the 14 + 9) | | C3, D1 |

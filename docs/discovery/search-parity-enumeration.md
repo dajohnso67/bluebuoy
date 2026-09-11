@@ -127,7 +127,23 @@ These are stored or calculated in FileMaker and searched as if they were plain c
 
 ## Part 5 — Staff-reported searches (pending Q55–Q58)
 
-*To be filled from batch 1 Section C.* Expected shape:
+**Received out of band — Round 2 (2026-09-10), before batch 1 Section C returned.** Staff named these unprompted while answering the reports questions (qa.md Q103–Q105); each is cross-referenced to the DDR row it runs:
+
+| Id | In the staff's words | Runs | Same as |
+| --- | --- | --- | --- |
+| SP-50 | "a button on top of our Schedule board that allows us to find students that have reported an absence" — used all day; "really a scheduling feature instead of a report" | the schedule board's `Search Out` button, for the day shown | SP-22 / SP-03 |
+| SP-51 | "a wait list report of open requests" checked weekly or monthly against the board for spots that opened — staff want it automated away | `RPT_Waitlist` | SP-32 |
+| SP-52 | "Notes from pool deck or teachers" (the `Teacher Notes to Scheduling Office` button) | `RPT_Notes_to_Scheduling_Office` | SP-34 |
+| SP-53 | the `Deck Mgr Notes to Scheduling Office` button | `RPT_DM_Notes_to_Scheduling_Office` | SP-34 |
+| SP-54 | "Free Trials or Make up trials that came in the day before" (the `Trials` button) | `RPT_Free_Trials` for yesterday | SP-31 |
+| SP-55 | the `Lesson Attendance` button | `RPT_Lesson_Attendance` | SP-16 |
+| SP-56 | monthly: "enrolled student's Pre Pays that will be ending for the current month and still have open enrollment going into next month" | a hand-built find over billing months — no scripted equivalent in the DDR | new; Part 6 computes it from the exports |
+| SP-57 | monthly: "currently enrolled students to check that their monthly tuition payment matches … the Authorize.net batch that will process on the first" | a hand-built find plus a spreadsheet cross-reference | new; becomes a billing-run exception view |
+| SP-58 | "Attendance sheet on each student's account" — a layout, not a find, but named as painful to lose | the student Attendance layout (year grid per type, Out Lessons, totals) | not a search; a screen the Attendance phase must carry |
+
+Screenshots of SP-50, SP-52–SP-55 and SP-58 came back with Round 2 and live only in the gitignored original of that document. **Still pending from Section C:** the rest of Q55, every Saved Find (Q56), the most complex search (Q57), and the wished-for searches (Q58).
+
+*Expected shape for the remainder:*
 
 - **SP-5x Daily ad-hoc finds (Q55):** one line each, in the staff's words, then the criteria in Part 1's vocabulary.
 - **SP-6x Saved Finds (Q56):** name as saved, the layout it belongs to, the criteria from the screenshot.

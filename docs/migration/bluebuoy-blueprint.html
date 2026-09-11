@@ -493,7 +493,7 @@
     <h1>Blue Buoy<span class="sub">FileMaker Pro → Go web stack</span></h1>
     <p class="lede">A structural blueprint and execution roadmap for replacing the swim school's FileMaker system — scheduling, billing, attendance — with Go and Chi, Templ, htmx with Alpine.js, Tailwind, and PostgreSQL.</p>
     <div class="sources">
-      <span><b>Synthesised from</b> technical-prompt.md · qa.md · qa1-1.md</span>
+      <span><b>Synthesised from</b> technical-prompt.md · qa.md · the context package (two staff rounds)</span>
       <span><b>Repo</b> dajohnso67/bluebuoy</span>
       <span><b>Source of truth</b> docs/migration/PLAN.md</span>
     </div>
@@ -514,14 +514,14 @@
     <main>
 
       <div class="callout">
-        <p><strong>Staff answers have begun to land.</strong> The questionnaire document itself is still blank, but a context package assembled from staff and ownership conversations answered twenty of the register's thirty-six decisions, and the reconciliation sweep of 2026-09-07 folded them in — correcting three recorded assumptions outright. Wherever this blueprint still rests on an unconfirmed reading, the register records the decision that answer blocks. Build on an assumption freely; confirm it before it prices anything.</p>
+        <p><strong>Two staff rounds have landed.</strong> The context package folds the first round and ownership conversations into its Part A, and the reconciliation sweep of 7 September flipped twenty of the register's thirty-six rows. The second round came back on 10 September and settled the live FileMaker file, the make-up credit exchange rates, the group class rules and the Adult class billing model, the first-responder discount, card volume, and what reports staff actually run. The register names what still waits.</p>
       </div>
 
       <div class="stats">
-        <div class="stat"><div class="v">98</div><div class="k">questions asked<br>of staff</div></div>
-        <div class="stat"><div class="v">20</div><div class="k">register rows<br>answered</div></div>
-        <div class="stat warn"><div class="v">20</div><div class="k">build decisions<br>still waiting</div></div>
-        <div class="stat warn"><div class="v">11</div><div class="k">with no working<br>assumption yet</div></div>
+        <div class="stat"><div class="v">108</div><div class="k">questions asked<br>of staff</div></div>
+        <div class="stat"><div class="v">25</div><div class="k">register rows<br>answered</div></div>
+        <div class="stat warn"><div class="v">17</div><div class="k">build decisions<br>still waiting</div></div>
+        <div class="stat warn"><div class="v">9</div><div class="k">with no working<br>assumption yet</div></div>
       </div>
 
       <section id="s1">
@@ -610,16 +610,20 @@
             <h5>Catalog &amp; pricing</h5>
             <ul>
               <li><b>class_type · level</b>Lookup tables replacing value lists.</li>
-              <li><b>eligibility_rule</b>Age and level bars as data, so a confirmed answer lands as a row rather than a deploy.</li>
+              <li><b>eligibility_rule</b>Age and level bars as data, per class type or per slot — the deck screen bands Group classes individually (<code>lv 8/9/10</code> beside <code>lv 9-10</code>). The group bars are confirmed: Parent &amp; Me 0–3, Group 7+ and level 9–12, Stroke Tech 10+ and level 10–12, Adult 16+.</li>
               <li><b>eligibility_override</b>Reason and authorizer. Exceptions stay possible and visible.</li>
               <li><b>price</b>Effective-dated, so the annual increase is a new row and history survives.</li>
-              <li><b>discount_step</b>The ordered sibling ladder and its cap, as rows.</li>
+              <li><b>discount_step</b>The ordered sibling ladder and its cap, as rows. Tier order stays staff-controlled: a funded child or a group lesson goes first so the dearer lessons take the discount.</li>
+              <li><b>household_discount</b>The 10% first-responder discount, stacking with sibling and prepay, with whether ID was verified.</li>
+              <li><b>credit_conversion_rate</b>The confirmed exchange table: 2 semi-private = 1 private, 2 group = 1 semi-private, 4 group = 1 private, every direction. Rates as data.</li>
+              <li><b>class_pack</b>The Adult class billing model: a single class or a pack of 4 or 8, consumed only when the roll marks the adult present. No monthly tuition.</li>
             </ul>
           </div>
           <div class="group">
             <h5>Scheduling</h5>
             <ul>
               <li><b>slot</b>Instructor, weekday, time, class type, capacity. The recurring place a family holds.</li>
+              <li><b>slot_override</b>An empty group slot lent for one day to other lesson types when a sub is needed — a dated action, never an edit to the slot.</li>
               <li><b>enrollment</b>A student's claim on a slot. The billable relationship.</li>
               <li><b>lesson</b>One dated occurrence, held as a time range.</li>
               <li><b>attendance</b>Status, who marked it, which device, and a client UUID that makes offline replay safe.</li>
@@ -636,7 +640,7 @@
               <li><b>payment_application</b>One institutional check settling several students' invoices is the normal case; invoices carry a submitted → paid lifecycle, so receivables aging is a query.</li>
               <li><b>price_agreement</b>The rate this enrollment pays, its reason, and the dates it holds.</li>
               <li><b>invoice · invoice_line</b>Line unit amounts are snapshots: reprinting a two-year-old invoice reproduces it exactly.</li>
-              <li><b>credit · credit_application</b>The ledger. A balance is a query, never a field.</li>
+              <li><b>credit · credit_application · credit_event</b>One denominated ledger — private, semi-private, group — with conversions and sibling transfers recorded as events. A balance is a query, never a field.</li>
               <li><b>payment</b>No cap on payments per month.</li>
               <li><b>billing_run · exception</b>The queue that replaces the spreadsheet cross-reference.</li>
             </ul>
@@ -679,9 +683,9 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
                 <td>The reset step, and the silent over-discount</td>
               </tr>
               <tr>
-                <td>Make-up credits accumulate invisibly — one student holds 28 unused private credits</td>
-                <td>The ledger makes balances queryable and expiry a policy field</td>
-                <td>The surprise, and the unused-credit report comes free</td>
+                <td>Make-up credits accumulate invisibly — one student holds 28 unused private credits — and convert between types at rates staff carry in their heads, with sibling transfers noted by hand</td>
+                <td>One denominated ledger with a conversion-rate table and transfer events; expiry a policy field</td>
+                <td>The surprise, the arithmetic at redemption, the hand-written transfer note — and the unused-credit report comes free, valued in one denomination</td>
               </tr>
             </tbody>
           </table>
@@ -713,9 +717,10 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
               <tr><td class="mono nw">enrollment.changed</td><td>Close the outgoing price agreement, open the incoming one, mark the period for proration</td></tr>
               <tr><td class="mono nw">lesson.cancelled</td><td>Issue a make-up credit where policy calls for one, notify the family</td></tr>
               <tr><td class="mono nw">closure.declared</td><td>Cancel every lesson in range, issue credits where the closure carries them, send the bulk notice</td></tr>
-              <tr><td class="mono nw">attendance.marked</td><td>Advance progression signals, feed the coverage view</td></tr>
+              <tr><td class="mono nw">attendance.marked</td><td>Advance progression signals, feed the coverage view, consume a class-pack lesson for an Adult marked present</td></tr>
               <tr><td class="mono nw">invoice.issued</td><td>Render the PDF, attach it to the payer, start the terms clock</td></tr>
               <tr><td class="mono nw">payment.failed</td><td>Raise an exception, notify the office, flag the card</td></tr>
+              <tr><td class="mono nw">credit.converted · credit.transferred</td><td>Consume the source credits, issue the target at the table rate or to the sibling, record the actor</td></tr>
             </tbody>
           </table>
         </div>
@@ -730,7 +735,9 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
               <tr><td class="nw">Credit expiry sweep</td><td class="mono nw">Nightly</td><td>Expires credits past their validity, which is what retires the manual referral reset</td></tr>
               <tr><td class="nw">Card expiry notice</td><td class="mono nw">Weekly</td><td>Surfaces cards on file about to lapse, ahead of a failed charge</td></tr>
               <tr><td class="nw">Lesson materialization</td><td class="mono nw">Nightly</td><td>Extends lesson rows from slot definitions across the rolling window</td></tr>
-              <tr><td class="nw">Progression signals</td><td class="mono nw">Weekly</td><td>Feeds the attrition and level-progression reports, all of them queries over the model above</td></tr>
+              <tr><td class="nw">Progression signals</td><td class="mono nw">Weekly</td><td>Feeds the attrition and level-progression reports, all of them queries over the model above — including the two-weeks-absent-without-notice list staff asked for</td></tr>
+              <tr><td class="nw">Enrollment snapshot</td><td class="mono nw">Weekly</td><td>Counts active enrollments by class type for the week, so the year-over-year comparison staff compile by hand into Excel every day is a query</td></tr>
+              <tr><td class="nw">Prepay-ending and batch check</td><td class="mono nw">Monthly</td><td>Lists prepays ending with enrollment continuing, and each auto-pay student's tuition against the pending Authorize.Net batch — the two monthly searches staff run by hand, surfaced as exceptions</td></tr>
             </tbody>
           </table>
         </div>
@@ -746,7 +753,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
         <p>The month-end work becomes clearing a short exception list rather than performing the whole run by hand.</p>
 
         <h3>Rules live as data</h3>
-        <p>Eligibility bars, sibling discount steps, prepay tiers, closure credit policy, and cancellation cutoffs are rows, not code. Staff answers arrive as configuration a staff member can change, and each carries an effective date, so changing a rule leaves last year's invoices reproducible.</p>
+        <p>Eligibility bars, sibling discount steps, the first-responder percentage, prepay tiers, make-up conversion rates, closure credit policy, cancellation cutoffs, and the Adult no-show rule are rows, not code. Staff answers arrive as configuration a staff member can change, and each carries an effective date, so changing a rule leaves last year's invoices reproducible.</p>
       </section>
 
       <section id="s4">
@@ -790,15 +797,19 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
               <tr><td class="method">POST</td><td class="mono nw">/api/v1/invoices/{id}/void</td><td>Void inside the window</td></tr>
               <tr><td class="method">GET</td><td class="mono nw">/api/v1/payers/{id}/receivables</td><td>Open invoices aged: outstanding, per payer, for how long</td></tr>
               <tr><td class="method">POST</td><td class="mono nw">/api/v1/payers/{id}/invoices</td><td>Month-end institutional invoice batch for a period</td></tr>
-              <tr><td class="method">GET</td><td class="mono nw">/api/v1/students/{id}/credits</td><td>Credit ledger and balance</td></tr>
+              <tr><td class="method">GET</td><td class="mono nw">/api/v1/students/{id}/credits</td><td>Credit ledger and balance, per denomination</td></tr>
+              <tr><td class="method">POST</td><td class="mono nw">/api/v1/students/{id}/credits/convert</td><td>Exchange credits between denominations at the table rate, recorded as an event</td></tr>
+              <tr><td class="method">POST</td><td class="mono nw">/api/v1/households/{id}/credits/transfer</td><td>Move credits between siblings, recorded as an event</td></tr>
+              <tr><td class="method">GET</td><td class="mono nw">/api/v1/reports/enrollment-weekly</td><td>Enrollment by class type per week against prior years — the daily hand-built Excel sheet</td></tr>
             </tbody>
           </table>
         </div>
 
         <h3>Integrations</h3>
         <ul>
-          <li><strong>Authorize.Net</strong> — kept, with Customer Information Manager holding the card vault so cards survive cutover. Enable Account Updater, which appears to be off and which turns a failed charge into a silent refresh.</li>
-          <li><strong>SMS</strong> — replaces fmSMS. Inbound replies need a destination.</li>
+          <li><strong>Authorize.Net</strong> — kept, with Customer Information Manager holding the card vault so cards survive cutover; Accept.js captures cards in the browser so numbers never touch the server; CIM charges a computed monthly amount, never ARB; the processor sits behind one internal interface. Enable Account Updater, which appears to be off. Volume is confirmed at $156k–$207k a month, which is why the stack stays.</li>
+          <li><strong>SMS</strong> — replaces fmSMS, which sits on a Twilio account; talk to Twilio directly and keep the sender number. Inbound replies need a destination.</li>
+          <li><strong>QuickBooks</strong> — stays the accounting system; the app produces clean exports (the ledger, P&amp;L and balance sheet the accountant receives each January) rather than replacing it.</li>
           <li><strong>PDF</strong> — server-side rendering of invoices, stored as documents.</li>
           <li><strong>Object storage</strong> — S3-compatible, holding what FileMaker container fields held plus institutional documentation.</li>
         </ul>
@@ -812,8 +823,8 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
           <div class="num">1</div>
           <div>
             <h3>Foundations</h3>
-            <p>The schema for identity, scheduling, and flags — money tables follow with Billing; the repeatable, non-destructive import for that slice; the <strong>decode pass</strong> narrowed to every deck-visible convention (ALL-CAPS student names, the under-4 diaper rule); individual accounts with PIN at shift start and session/device management; hosting, backup, and point-in-time recovery with one tested restore. The <strong>archaeology</strong> track — the remaining institutional artifacts — runs alongside without gating this phase.</p>
-            <div class="gate"><span class="tag">Gate</span><p>The live file is confirmed (BlueBuoy_FM vs BlueBuoy_FM_2024); household, student, enrollment, and flag counts reconcile against FileMaker; ten sampled households match field by field, including flags and notes; no deck-visible convention remains undecoded.</p></div>
+            <p>The schema for identity, scheduling, and flags — money tables follow with Billing; the repeatable, non-destructive import for that slice; the <strong>decode pass</strong> narrowed to every deck-visible convention (ALL-CAPS student names, the under-4 diaper rule); individual accounts with PIN at shift start and session/device management; hosting, backup, and point-in-time recovery with one tested restore. An <strong>archive</strong> concept from the start — households restorable, never deleted — because the FM_2024 file exists only as a performance workaround, and what the import does with it is a map decision. The <strong>archaeology</strong> track — the remaining institutional artifacts — runs alongside without gating this phase.</p>
+            <div class="gate"><span class="tag">Gate</span><p>The import runs from BlueBuoy_FM — confirmed live — and the BlueBuoy_FM_2024 archive is accounted for per the archive decision; household, student, enrollment, and flag counts reconcile against FileMaker; ten sampled households match field by field, including flags and notes; no deck-visible convention remains undecoded.</p></div>
           </div>
         </div>
 
@@ -830,7 +841,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
           <div class="num">3</div>
           <div>
             <h3>Scheduling &amp; search</h3>
-            <p>Enrollment, schedule editing, waitlist, closures, and search. Search is the phase's centre of gravity, not a feature within it: a saved-search model plus a criteria builder reaching every field staff currently search, seeded with the Saved Finds they name. Plus make-up credit issuance and redemption, closure handling with bulk make-ups, eligibility validation with override, and the deck-manager tools held out of the December slice.</p>
+            <p>Enrollment, schedule editing, waitlist, closures, and search. Search is the phase's centre of gravity, not a feature within it: a saved-search model plus a criteria builder reaching every field staff currently search, seeded with the Saved Finds they name. Plus make-up credit issuance and redemption — including conversion between denominations and sibling transfers — closure handling with bulk make-ups, eligibility validation with override and per-class group bands, one-day repurposing of an empty group slot, the absence lookup as an instant action on the schedule board, the substitute-finding flow with its three constraints (instructor gender, level pairing, sibling proximity), and the deck-manager tools held out of the December slice.</p>
             <div class="gate"><span class="tag">Gate</span><p>Every search in the parity enumeration &mdash; the system's own scripted and structured searches plus the daily finds and Saved Finds staff name &mdash; returns the same set as FileMaker on the same data, and deck staff run one full week of real scheduling in the new UI alongside the old, including one full make-up cycle.</p></div>
           </div>
         </div>
@@ -839,9 +850,9 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
           <div class="num">4</div>
           <div>
             <h3>Billing</h3>
-            <p>Begins only after the December 2026 rollover has run in FileMaker, and never cuts over in a peak month. The billing run state machine, pricing, credits, proration, rate-lock price agreements, enrollment holds and the one-year hold clock, the full transaction ledger, invoice PDFs, and the Authorize.Net integration. Dry runs only; nothing charges a card until the shadow gate is green.</p>
+            <p>Begins only after the December 2026 rollover has run in FileMaker, and never cuts over in a peak month. The billing run state machine, pricing, credits, proration, rate-lock price agreements, the first-responder discount, enrollment holds and the one-year hold clock, Adult class packs consumed on attendance, the full transaction ledger, invoice PDFs, the Authorize.Net integration, and the monthly prepay-ending and tuition-vs-batch checks as exception views. Dry runs only; nothing charges a card until the shadow gate is green.</p>
             <p>FileMaker's pre-created future billing months need a decision of their own before this phase's import runs. They are not history, they are pre-materialized future state, and some hold prices that went stale the day the price list changed. Import them as what they are — a queue of intentions — and they become enrollments the billing run will price when each period arrives.</p>
-            <div class="gate"><span class="tag">Gate</span><p>Open-credit counts reconcile and every future-dated billing month is accounted for; a dry run of the last closed month reproduces every FileMaker invoice to the cent, or names the difference and its cause; then monthly shadow runs until three consecutive months land green.</p></div>
+            <div class="gate"><span class="tag">Gate</span><p>Open-credit counts reconcile per denomination and every future-dated billing month is accounted for; a dry run of the last closed month reproduces every FileMaker invoice to the cent, or names the difference and its cause; then monthly shadow runs until three consecutive months land green.</p></div>
           </div>
         </div>
 
@@ -858,7 +869,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
           <div class="num">6</div>
           <div>
             <h3>Cutover</h3>
-            <p>Freeze FileMaker writes, run the final import, verify counts, point the gateway at the new system, and keep FileMaker readable for a year alongside a permanent frozen archive. The card vault stays where it is, so no family is asked for a card.</p>
+            <p>Freeze FileMaker writes, run the final import, verify counts, point the gateway at the new system, and keep FileMaker readable for a year alongside a permanent frozen archive that includes BlueBuoy_FM_2024. The card vault stays where it is, so no family is asked for a card.</p>
             <p><strong>Rollback:</strong> available until the first committed billing run in the new system. Past that point, FileMaker no longer holds the month, and recovery is forward — which is why three green months, and not two, is the bar.</p>
           </div>
         </div>
@@ -868,7 +879,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
         <div><b>docs/migration/PLAN.md</b> — this blueprint, and the source of truth for it</div>
         <div><b>docs/migration/open-questions.md</b> — the decision each unanswered question blocks</div>
         <div><b>CONTEXT.md</b> — domain vocabulary</div>
-        <div><b>qa.md</b> — the staff questionnaire, awaiting answers</div>
+        <div><b>qa.md</b> — the staff questionnaire, two rounds transcribed</div>
       </footer>
 
     </main>

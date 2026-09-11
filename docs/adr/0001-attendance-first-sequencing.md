@@ -4,7 +4,7 @@ Status: accepted (2026-09-07 · wayfinder ticket [#3](https://github.com/dajohns
 
 The corpus carried two phase orderings: `PLAN.md` §5's backend-first (extraction → core backend → scheduler UI → billing → parallel run) and the context package Part B's attendance-first, targeting the December closure. We chose **attendance-first**: foundations narrowed to what attendance needs, the attendance app trained and cut over during the December 2026 closure with go-live at the January reopening, then scheduling and search, then billing, then institutional payers.
 
-Why: December is a hard deadline for the stakeholders, and it is *confirmed* (package 3.5, 2.8) as the most billing-intensive moment of the year — annual rate change, prepay-at-old-rate sales, bulk next-year generation — so it is the best possible window for attendance (no lessons run, staff can train) and the worst possible one for billing. Attendance-first also fronts the cheapest trust test the project has: if instructors don't prefer the new app, that gets fixed before anything with money in it is built. The fallback is safe — `Launcher_Teacher` stays fully operational.
+Why: December is a hard deadline for the stakeholders, and it is *confirmed* (package 3.6, 2.8) as the most billing-intensive moment of the year — annual rate change, prepay-at-old-rate sales, bulk next-year generation — so it is the best possible window for attendance (no lessons run, staff can train) and the worst possible one for billing. Attendance-first also fronts the cheapest trust test the project has: if instructors don't prefer the new app, that gets fixed before anything with money in it is built. The fallback is safe — `Launcher_Teacher` stays fully operational.
 
 ## Decisions folded in
 

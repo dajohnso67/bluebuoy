@@ -6,11 +6,15 @@ A short, focused follow-up to the big questionnaire — **17 questions, not 98**
 
 **Timing ask:** Section A back within **a week** if at all possible (it gates December); Sections B and C within **two weeks**.
 
+> **Re-cut 2026-09-10.** A separate "Round 2" document came back answered before this batch went out, and it covered three of these questions and half of a fourth. Those are marked below — skip them unless something has changed. **Fourteen questions remain.**
+
 ---
 
 ## Section A — Pool deck & server *(gates December — please answer first)*
 
 *For: whoever manages the FileMaker server (A1), and deck/scheduling staff (A2–A6).*
+
+> *Answered in Round 2 (2026-09-10): `BlueBuoy_FM` is live; `BlueBuoy_FM_2024` is the archive of families idle ten years. Skip.*
 
 **A1 (Q99). Which FileMaker file is the live one — `BlueBuoy_FM` or `BlueBuoy_FM_2024`?** Both exist on the server; we analyzed `BlueBuoy_FM` and need to know whether that's the one in daily use.
 
@@ -48,6 +52,8 @@ A short, focused follow-up to the big questionnaire — **17 questions, not 98**
 
 *Answer:*
 
+> *Half answered in Round 2 (2026-09-10): Parent & Me ages 0–3 with no level; Group / Stroke Prep age 7+ and level 9–12; Stroke Tech age 10+ and level 10–12; Adult age 16+. Still needed: Private and Semi-Private, and whether one class's band may sit below the type's bar (a Group class on the deck screen is banded level 8/9/10).*
+
 **B3 (Q60). What are the exact requirements for each class type?** Our two sources disagree: one says Group needs age 7+ and **level 8+**, the other says **level 9+** — and Parent & Me "age 3 and under" and Stroke Tech "age 10+ and level 10+" are both marked approximate. Please give us the exact bars.
 
 *Answer:*
@@ -68,6 +74,8 @@ A short, focused follow-up to the big questionnaire — **17 questions, not 98**
 
 *Answer:*
 
+> *Answered in Round 2 (2026-09-10): 2 semi-private = 1 private, 2 group = 1 semi-private, 4 group = 1 private, every direction; staff choose at redemption. Skip.*
+
 **B8 (Q100). Make-up credit conversion between lesson types** — we heard credits can be traded across types (something like a few group credits equaling one semi-private, and about four group equaling one private). Is that right? What are the actual ratios, which directions are allowed (can a private credit be split into group credits?), and does someone approve each conversion or is it automatic?
 
 *Answer:*
@@ -75,6 +83,8 @@ A short, focused follow-up to the big questionnaire — **17 questions, not 98**
 **B9 (Q14). Prepay tiers** — we now know prepay discounts are duration-based: 4 months = 5%, 8 months = 10%. **Are any other tiers actually offered** (the system lists 15%, 20%, 25%, 50%, 100%), and what earns them?
 
 *Answer:*
+
+> *Answered in Round 2 (2026-09-10): 10% for military, police and fire; stacks with sibling and prepay; ID requested, and staff want a flag for it. Skip.*
 
 **B10 (Q101). The military discount** — how much is it, and does it stack with the sibling and prepay discounts?
 
