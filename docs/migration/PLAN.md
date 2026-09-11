@@ -82,13 +82,13 @@ The brief's four entities map onto Blue Buoy as: **Customers** → `household` a
 - `discount_step` — the ordered sibling ladder and its cap, as rows. Tier assignment order is staff-controllable per household: the confirmed strategy places an institutionally-funded child in the undiscounted first tier so the out-of-pocket sibling gets the discount, and a group lesson goes first for the same reason (Round 2 Q3).
 - `household_discount` — `household_id`, kind (`first_responder`), percent, `verified_at`, `verified_by`, `document_id`. The 10% first-responder discount (Round 2 Q16, Confirmed) stacks with the sibling steps and the prepay discount; the verification columns are the "ID provided" flag staff asked for.
 - `credit_conversion_rate` — `from_denomination`, `to_denomination`, `from_count`, `to_count`, `effective_from`. The confirmed exchange table (2 semi-private = 1 private, 2 group = 1 semi-private, 4 group = 1 private, every direction; Group, Stroke Tech and Parent & Me are one `group` denomination). Rates as data, so a changed ratio is a row.
-- `class_pack` — `student_id`, size (1, 4, 8), `purchased_at`, price snapshot, `payment_id`; `class_pack_use` — `class_pack_id`, `attendance_id`. The Adult class billing model (Round 2 Q6, Confirmed): no monthly tuition, a lesson consumed only when the roll marks the adult present. The no-show rule is open and lands as a rule row.
+- `class_pack` — `student_id`, `class_type_id`, size (1, 4, 8), `purchased_at`, `invoice_line_id` (the snapshot price), `valid_to` (from the `class_pack_expiry_months` rule; null = never); `class_pack_use` — `class_pack_id` (nullable: a deficit), `attendance_id` unique, so an offline replay can never consume twice. A **billing mode** on the enrollment (`monthly` or `class_pack`) decides whether the billing run prices it or skips it; a rule row names which class types sell packs (seeded: Adult). A pack sale is an `invoice` of kind `class_pack` with one line at a `price` row of cadence `per_pack`. Consumption happens on `attendance.marked` present; an empty pack never gates the roll — the balance goes to −1 and a `class_pack_deficit` exception sends the office to sell the next pack. Packs are purchases, not credits: never a denomination of the make-up ledger. The no-show rule (`adult_no_show_consumes`, `adult_notice_hours`), expiry, and whether household discounts reach a pack are rule rows awaiting staff (qa.md Q110). Settled by [ADR-0004](../adr/0004-adult-class-packs.md).
 
 **Scheduling**
 
 - `slot` — `instructor_id`, weekday, `start_time`, duration, `class_type_id`, capacity, active range. The recurring place a family holds.
 - `slot_override` — `slot_id`, date, `class_type_id`, reason. An empty group slot lent for one day to semi-private, private, make-ups or Parent & Me when a sub is needed (Round 2 Q1) — a dated action, never an edit to the slot.
-- `enrollment` — `student_id`, `slot_id`, date range, `price_agreement_id`. The billable relationship.
+- `enrollment` — `student_id`, `slot_id`, date range, `billing_mode` (`monthly`, `class_pack`), `price_agreement_id` (monthly only). The billable relationship.
 - `lesson` — `slot_id`, `during` (a `tstzrange`), `instructor_id`, status. One dated occurrence.
 - `attendance` — `lesson_id`, `student_id`, status, `marked_by`, `marked_at`, `device_id`, `client_uuid` unique. The last column makes offline replay safe.
 - `closure` — date range, scope, reason, `issues_credit`. The master calendar Q45 asks about.
@@ -109,7 +109,7 @@ The brief's four entities map onto Blue Buoy as: **Customers** → `household` a
 - `payment_application` — `payment_id`, `invoice_id`, amount. One institutional check settling several students' invoices is the normal case.
 - `adjustment` — `invoice_id`, amount, `reason_code`, `created_by`. For genuine one-offs, once the routine cases stop needing one.
 - `billing_run` — period, mode (`dry_run`, `shadow`, `committed`), state, timestamps.
-- `billing_run_exception` — `run_id`, `household_id`, code, detail. The queue that replaces the spreadsheet cross-reference — including the code for an institutional student with no funding reference for the period, which retires the month-end phone-around.
+| `billing_run_exception` — `run_id`, `household_id`, code, detail. The queue that replaces the spreadsheet cross-reference — including the code for an institutional student with no funding reference for the period, which retires the month-end phone-around, and `class_pack_deficit` for an adult who attended past an empty pack.
 
 > The institutional model above is [ADR-0002](../adr/0002-no-authorization-balance-tracking.md): **no authorization balance tracking** — the earlier cap-consumption design was a corrected over-design (package 2.10, Confirmed). QuickBooks stays the accounting system; the app reconciles with it. Service logs are gone from the model entirely: no payer requires documentation to release payment (qa.md Q12).
 
@@ -169,7 +169,7 @@ Each trigger becomes a named event the service publishes and handlers subscribe 
 | `enrollment.changed` | Close the outgoing price agreement, open the incoming one, mark the period for proration |
 | `lesson.cancelled` | Issue a make-up credit where policy calls for one, notify the family |
 | `closure.declared` | Cancel every lesson in range, issue credits where `issues_credit` holds, send the bulk notice |
-| `attendance.marked` | Advance progression signals, feed the coverage view, consume a class-pack lesson for an Adult marked present |
+| `attendance.marked` | Advance progression signals, feed the coverage view, consume a class-pack lesson for a pack-mode enrollment marked present (or record a deficit and raise the exception) |
 | `invoice.issued` | Render the PDF, attach it to the payer, start the terms clock |
 | `payment.failed` | Raise an exception, notify the office, flag the card |
 | `makeup.booked` / `makeup.cancelled` | Reserve the credit (converting first if staff chose to) / release it in the denomination it holds |
@@ -197,7 +197,7 @@ This is the design answer to Q24–Q34. The month-end work becomes clearing a sh
 
 ### Rules live as data
 
-Eligibility bars, sibling discount steps, the first-responder percentage, prepay tiers, make-up conversion rates, make-up expiry (`makeup_expiry_months`) and the legacy Christmas redemption boundary (`makeup_redeem_before`, qa.md Q109), closure credit policy, cancellation cutoffs, and the Adult no-show rule are rows, not code. Answers to `qa.md` arrive as configuration a staff member can change, and each carries `effective_from`, so changing a rule leaves last year's invoices reproducible.
+Eligibility bars, sibling discount steps, the first-responder percentage, prepay tiers, make-up conversion rates, make-up expiry (`makeup_expiry_months`) and the legacy Christmas redemption boundary (`makeup_redeem_before`, qa.md Q109), closure credit policy, cancellation cutoffs, and the class-pack rules (which class types sell packs, `adult_no_show_consumes`, `adult_notice_hours`, `class_pack_expiry_months`, `class_pack_discounts_apply`) are rows, not code. Answers to `qa.md` arrive as configuration a staff member can change, and each carries `effective_from`, so changing a rule leaves last year's invoices reproducible.
 
 ## 4. API Contract & Integration Outline
 
@@ -283,7 +283,7 @@ The make-up ledger imports here by **replay**: every `Lesson_Out` row becomes an
 
 ### Billing
 
-Constrained by ADR-0001: begins only after the December 2026 rollover has run in FileMaker, and never cuts over in a peak month. The billing run state machine, pricing, credits, proration, rate-lock price agreements, the first-responder discount, enrollment holds and the one-year hold clock, Adult class packs consumed on attendance, the full transaction ledger, invoice PDFs, the Authorize.Net integration, and the monthly prepay-ending and tuition-vs-batch checks as exception views. Dry runs only; nothing charges a card until the shadow gate is green.
+Constrained by ADR-0001: begins only after the December 2026 rollover has run in FileMaker, and never cuts over in a peak month. The billing run state machine, pricing, credits, proration, rate-lock price agreements, the first-responder discount, enrollment holds and the one-year hold clock, class packs consumed on attendance ([ADR-0004](../adr/0004-adult-class-packs.md) — legacy has nothing to replay: each adult's hand-typed `Adult_Credit` imports as one opening pack of unknown price and every adult lands on a review list; FileMaker's monthly Adult rate rows import like any other pre-created month), the full transaction ledger, invoice PDFs, the Authorize.Net integration, and the monthly prepay-ending and tuition-vs-batch checks as exception views. Dry runs only; nothing charges a card until the shadow gate is green.
 
 FileMaker's pre-created future billing months need a decision of their own before this phase's import runs. They are not history, they are pre-materialized future state, and some of them hold prices that went stale the day the price list changed. Import them as invoices and the staleness crosses into the new system wearing the authority of a record. Import them as what they are — a queue of intentions — and they become enrollments the billing run will price when each period arrives.
 

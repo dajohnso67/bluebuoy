@@ -616,7 +616,7 @@
               <li><b>discount_step</b>The ordered sibling ladder and its cap, as rows. Tier order stays staff-controlled: a funded child or a group lesson goes first so the dearer lessons take the discount.</li>
               <li><b>household_discount</b>The 10% first-responder discount, stacking with sibling and prepay, with whether ID was verified.</li>
               <li><b>credit_conversion_rate</b>The confirmed exchange table: 2 semi-private = 1 private, 2 group = 1 semi-private, 4 group = 1 private, every direction. Rates as data.</li>
-              <li><b>class_pack</b>The Adult class billing model: a single class or a pack of 4 or 8, consumed only when the roll marks the adult present. No monthly tuition.</li>
+              <li><b>class_pack · class_pack_use</b>A second billing mode on the enrollment (ADR-0004): a single class or a pack of 4 or 8, sold as an invoice at a snapshot price, consumed one lesson per attendance marked present, idempotent on the attendance row. The billing run skips pack-mode enrollments; an empty pack never gates the roll — it becomes a deficit exception. No-show, expiry and discount rules are rows awaiting staff.</li>
             </ul>
           </div>
           <div class="group">
@@ -624,7 +624,7 @@
             <ul>
               <li><b>slot</b>Instructor, weekday, time, class type, capacity. The recurring place a family holds.</li>
               <li><b>slot_override</b>An empty group slot lent for one day to other lesson types when a sub is needed — a dated action, never an edit to the slot.</li>
-              <li><b>enrollment</b>A student's claim on a slot. The billable relationship.</li>
+              <li><b>enrollment</b>A student's claim on a slot, with a billing mode: monthly tuition or class pack. The billable relationship.</li>
               <li><b>lesson</b>One dated occurrence, held as a time range.</li>
               <li><b>attendance</b>Status, who marked it, which device, and a client UUID that makes offline replay safe.</li>
               <li><b>closure</b>Date range, reason, and whether it issues credit.</li>
@@ -717,7 +717,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
               <tr><td class="mono nw">enrollment.changed</td><td>Close the outgoing price agreement, open the incoming one, mark the period for proration</td></tr>
               <tr><td class="mono nw">lesson.cancelled</td><td>Issue a make-up credit where policy calls for one, notify the family</td></tr>
               <tr><td class="mono nw">closure.declared</td><td>Cancel every lesson in range, issue credits where the closure carries them, send the bulk notice</td></tr>
-              <tr><td class="mono nw">attendance.marked</td><td>Advance progression signals, feed the coverage view, consume a class-pack lesson for an Adult marked present</td></tr>
+              <tr><td class="mono nw">attendance.marked</td><td>Advance progression signals, feed the coverage view, consume a class-pack lesson for a pack-mode enrollment marked present (or record a deficit)</td></tr>
               <tr><td class="mono nw">invoice.issued</td><td>Render the PDF, attach it to the payer, start the terms clock</td></tr>
               <tr><td class="mono nw">payment.failed</td><td>Raise an exception, notify the office, flag the card</td></tr>
               <tr><td class="mono nw">makeup.booked · makeup.cancelled</td><td>Reserve the credit (converting first if staff chose to) / release it</td></tr>
@@ -754,7 +754,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
         <p>The month-end work becomes clearing a short exception list rather than performing the whole run by hand.</p>
 
         <h3>Rules live as data</h3>
-        <p>Eligibility bars, sibling discount steps, the first-responder percentage, prepay tiers, make-up conversion rates, make-up expiry and the legacy Christmas redemption boundary, closure credit policy, cancellation cutoffs, and the Adult no-show rule are rows, not code. Staff answers arrive as configuration a staff member can change, and each carries an effective date, so changing a rule leaves last year's invoices reproducible.</p>
+        <p>Eligibility bars, sibling discount steps, the first-responder percentage, prepay tiers, make-up conversion rates, make-up expiry and the legacy Christmas redemption boundary, closure credit policy, cancellation cutoffs, and the class-pack rules (no-shows, expiry, discounts, which types sell packs) are rows, not code. Staff answers arrive as configuration a staff member can change, and each carries an effective date, so changing a rule leaves last year's invoices reproducible.</p>
       </section>
 
       <section id="s4">
@@ -852,7 +852,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
           <div class="num">4</div>
           <div>
             <h3>Billing</h3>
-            <p>Begins only after the December 2026 rollover has run in FileMaker, and never cuts over in a peak month. The billing run state machine, pricing, credits, proration, rate-lock price agreements, the first-responder discount, enrollment holds and the one-year hold clock, Adult class packs consumed on attendance, the full transaction ledger, invoice PDFs, the Authorize.Net integration, and the monthly prepay-ending and tuition-vs-batch checks as exception views. Dry runs only; nothing charges a card until the shadow gate is green.</p>
+            <p>Begins only after the December 2026 rollover has run in FileMaker, and never cuts over in a peak month. The billing run state machine, pricing, credits, proration, rate-lock price agreements, the first-responder discount, enrollment holds and the one-year hold clock, class packs consumed on attendance (ADR-0004; legacy has nothing to replay, so hand-typed adult balances import as opening packs on a review list), the full transaction ledger, invoice PDFs, the Authorize.Net integration, and the monthly prepay-ending and tuition-vs-batch checks as exception views. Dry runs only; nothing charges a card until the shadow gate is green.</p>
             <p>FileMaker's pre-created future billing months need a decision of their own before this phase's import runs. They are not history, they are pre-materialized future state, and some hold prices that went stale the day the price list changed. Import them as what they are — a queue of intentions — and they become enrollments the billing run will price when each period arrives.</p>
             <div class="gate"><span class="tag">Gate</span><p>Open-credit counts reconcile per denomination and every future-dated billing month is accounted for; a dry run of the last closed month reproduces every FileMaker invoice to the cent, or names the difference and its cause; then monthly shadow runs until three consecutive months land green.</p></div>
           </div>

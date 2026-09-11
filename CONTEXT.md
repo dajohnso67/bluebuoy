@@ -42,7 +42,9 @@ Seeded from the FileMaker analysis and [`qa.md`](./qa.md). Terms marked **open**
 - **Credit liability** — outstanding make-up credits valued in private-lesson equivalents: four group or two semi-private per private. Dollars are only ever a reporting column.
 - **Conversion rate** — a row in the exchange table: two semi-private make one private, two group make one semi-private, four group make one private. Data, not code.
 - **Credit transfer** — moving make-up credits from one sibling to another inside a household, keeping their origin and expiry, recorded as an event with an author. Today a hand-written note.
-- **Class pack** — the Adult class's unit of payment: one, four, or eight lessons bought up front and consumed only when the roll marks the adult present. Not monthly tuition (qa.md Q61, answered for Adult).
+- **Class pack** — lessons bought up front (one, four, or eight) and consumed one at a time when the roll marks the student present. A purchase, never a credit; today sold only for the Adult class (qa.md Q61, answered for Adult; [ADR-0004](./docs/adr/0004-adult-class-packs.md)). _Avoid_: package, punch card, adult credit.
+- **Billing mode** — how an enrollment is charged: **monthly tuition** through the billing run, or **class pack**, which the billing run skips.
+- **Pack deficit** — a lesson attended with no pack lesson left to consume. Recorded, never blocked at the roll; the next pack sold absorbs it.
 - **First-responder discount** — ten percent off for military, police and fire families, stacking with sibling steps and prepay; carries whether ID was verified (qa.md Q101, answered).
 - **Billing run** — the month-end process that prices every active enrollment and issues invoices. Runs in three modes: dry run, shadow, committed.
 - **Exception** — a household the billing run declines to price without a human look. Replaces the spreadsheet cross-reference.

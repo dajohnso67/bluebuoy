@@ -62,7 +62,7 @@ Largest table; the export takes a few minutes. Half a million rows at ~30 column
 
 ### `Lesson_Schedules` (126,251)
 
-`PrimaryKey`, `ID_Lesson_Schedule`, `id_student`, `id_family`, `id_staff`, `id_lesson`, `Instructor`, `Instructor_Nickname`, `Lesson_Type`, `Day`, `Time_Start`, `Time_End`, `Date_Start`, `Date_End`, `Pool_Used`, `Status`, `CreationTimestamp`, `ModificationTimestamp`, `Lesson_MU`, `Lesson_MU_to_use`, `Lesson_MU_Amount`
+`PrimaryKey`, `ID_Lesson_Schedule`, `id_student`, `id_family`, `id_staff`, `id_lesson`, `Instructor`, `Instructor_Nickname`, `Lesson_Type`, `Day`, `Time_Start`, `Time_End`, `Date_Start`, `Date_End`, `Pool_Used`, `Status`, `CreationTimestamp`, `ModificationTimestamp`, `Lesson_MU`, `Lesson_MU_to_use`, `Lesson_MU_Amount`, `Adult_Credit`
 
 ### `Lesson_Attendance` (334,399)
 
@@ -93,3 +93,5 @@ python scripts/profile_exports.py resources/exports/YYYY-MM-DD > docs/discovery/
 ```
 
 The report holds counts, ranges, and distributions only, plus instructor first names where they collide. It is safe to commit; the exports are not. Paste the report's headline block into the ticket as the resolution.
+
+**Added 2026-09-10 (ADR-0004):** `Lesson_Schedules.Adult_Credit` is the only trace of Adult class-pack balances (hand-typed on the iPad, maintained by nothing). Its non-blank values become opening packs at import; the export lets us count how many adults carry one and what the values look like.

@@ -533,6 +533,10 @@ New questions that surfaced after the original set went out.
 
 *Answer:* 
 
+**110\.  Adult class packs — four loose ends.** (a) When an adult doesn't show and didn't tell you, should the lesson come off their pack anyway — and if so, how much notice earns a pass (a few hours, the day before)? (b) Do packs expire — is a pack of 8 bought in January still good in December? (c) If the adult is a parent of enrolled children, or a first responder, do those discounts apply to a pack? (d) Two things the software disagrees with you on: it has a *monthly* Adult rate in its rate table, and it gives an Adult class 5 seats, not 6 — which is right? *(added 2026-09-10)*
+
+*Answer:* 
+
 | Part 2: The Most Important Question |
 | :---- |
 
