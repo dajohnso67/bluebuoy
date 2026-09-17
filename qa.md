@@ -201,7 +201,7 @@ We believe the setup is Affinity24 (Tustin) as the processor, Authorize.Net as t
 
 **35\.  Is that right?** Anything else in the mix?
 
-*Answer:* 
+*Answer:*  *(Findings §2.2, Round 3, September 2026)* All cards are stored in Authorize.Net and the monthly charges run from there; a FileMaker card field reading "online" means exactly that. Only two people have Authorize.Net access, so a phone payment today means writing the card down for them. The school does not want to widen gateway access and prefers sending the family an invoice or payment link (invoicing is already enabled; one person sends them) — texting the link would be better than Authorize.Net's email-only invoice.
 
 **36\.  Roughly what's the monthly credit card volume?** (Not counting charter school / Regional Center payments, which come by check.)
 
@@ -235,7 +235,7 @@ We believe the setup is Affinity24 (Tustin) as the processor, Authorize.Net as t
 
 **43\.  For one-off closures** (a holiday, weather, pool maintenance) — does everyone affected automatically get a make-up credit? Always, or are there exceptions?
 
-*Answer:* 
+*Answer:*  *(Package v3 §3.9, confirmed with the billing/scheduling lead, September 2026)* Once issued, a holiday credit is an ordinary make-up credit — same expiry, ratios and offer process. Bulk issuance is easy given the right search: everyone with a lesson on a given weekday, or everyone in a given pool. A third path exists: skip the make-up and prorate tuition instead — for a new student whose first lesson falls on a closure, or as a retention gesture, allowed **once per family, not annually**.
 
 **44\.  How do you close the pool for a day** and get make-ups issued to everyone today? How long does that take?
 
@@ -271,7 +271,7 @@ We believe the setup is Affinity24 (Tustin) as the processor, Authorize.Net as t
 
 **51\.  What billing situations does the system NOT handle**, so you deal with them manually or outside the system?
 
-*Answer:* 
+*Answer:*  *(Findings §3.3–3.4, Round 3, September 2026)* Trades — lessons for goods or services — are rare "special circumstances"; today the family is marked "do not bill" and the trade's value is recorded nowhere, and a note is fine. About 20 families are "do not bill", for three reasons: trade, staff family, friends of staff.
 
 ## **Waitlist & Scheduling**
 
@@ -349,7 +349,7 @@ We have approximate requirements but need them confirmed exactly, since the syst
 
 **68\.  Are there other ways you encode meaning by how you type something?** We know about ALL CAPS first names (special needs students, and difficult parents). Others might include: bold text, abbreviations in notes, a symbol or punctuation added to a name, putting something in a particular field that isn't quite what that field is for.
 
-*Answer:* 
+*Answer:*  *(Findings §2.1, Round 3, September 2026)* Student first names are formatted to title case by the system and upper-cased only when Special Abilities is checked — nobody types student caps by hand; capitalised student *last* names are data-entry noise and should be title-cased. Parent first names in caps *are* typed by hand and mean "handle with care": the parent complains, struggles to understand, or is needy.
 
 **69\.  What do the common note abbreviations mean?** We've seen things like "AUG PO," "WORK," "MU," "OUT" — a quick glossary of the shorthand your team uses would help a lot.
 
@@ -361,7 +361,7 @@ We have approximate requirements but need them confirmed exactly, since the syst
 
 **71\.  For the ALL-CAPS parent convention** — is that something you'd want carried into the new system, or handled differently? (Our suggestion: a proper account note with a reason and a date, visible only to office staff, rather than changing the person's name. Happy to do it either way — your call.)
 
-*Answer:* 
+*Answer:*  *(Findings §2.1, Round 3 and ownership, September 2026)* Agreed: an office-only "handle with care" flag with a short reason note; office screens show the parent's name in caps when the flag is set, so the glanceable convention survives; never shown to instructors or on parent-facing output.
 
 ## **Communication**
 
@@ -489,6 +489,8 @@ New questions that surfaced after the original set went out.
 
 **Round 2 (answered 2026-09-10).** A second, separately numbered document — [`docs/migration/BlueBuoy_Round2_Questions.docx.md`](./docs/migration/BlueBuoy_Round2_Questions.docx.md), Round 2 Q1–Q20 — came back answered out of band. Its answers are transcribed here under the `qa.md` question they answer, each citing "Round 2 Qn"; questions it asked that had no `qa.md` counterpart are added below as Q103–Q108.
 
+**Round 3 (September 2026).** Answers given during the live export session by the billing and office staff, and decisions by ownership, are recorded in [`docs/migration/BlueBuoy_Export_Session_Findings.md`](./docs/migration/BlueBuoy_Export_Session_Findings.md) with no numbering of their own; they are transcribed here citing "Findings §n" (Q35, Q43, Q51, Q68, Q71, Q102) and the rules that had no question become Q111–Q115.
+
 **99\.  Which FileMaker file is the live one — `BlueBuoy_FM` or `BlueBuoy_FM_2024`?** Both exist on the server; we analyzed `BlueBuoy_FM` and need to know whether that's the one in daily use. (For whoever manages the FileMaker server.)
 
 *Answer:* *(Round 2 Q18, answered 2026-09-10)* We use `BlueBuoy_FM` currently. `FM_2024` is a history file. What happens is our system slows due to too many files, so we archive families that have not been enrolled for 10 years. We still need access to the old files (rarely) but need to see, just in case a family returns years later.
@@ -503,7 +505,7 @@ New questions that surfaced after the original set went out.
 
 **102\.  When you offer a family a make-up slot, how long should they get to answer** before the offer moves on to the next family? Today this is informal — we want to put a real clock on it, so tell us what feels right (a few hours, a day, ...).
 
-*Answer:* 
+*Answer:*  *(Package v3 §2.4, confirmed with the billing/scheduling lead, September 2026)* Short — plausibly an hour or two, not a day: every hour a slot sits held against an unanswered offer is an hour another family cannot take it. Offer one or two options at most, and let the window be adjusted per offer (a slot three days out can afford longer). The default is still to confirm.
 
 **103\.  What reports do you run regularly?** Weekly, monthly, whenever — even the boring ones. *(Round 2 Q12)*
 
@@ -536,6 +538,26 @@ New questions that surfaced after the original set went out.
 **110\.  Adult class packs — four loose ends.** (a) When an adult doesn't show and didn't tell you, should the lesson come off their pack anyway — and if so, how much notice earns a pass (a few hours, the day before)? (b) Do packs expire — is a pack of 8 bought in January still good in December? (c) If the adult is a parent of enrolled children, or a first responder, do those discounts apply to a pack? (d) Two things the software disagrees with you on: it has a *monthly* Adult rate in its rate table, and it gives an Adult class 5 seats, not 6 — which is right? *(added 2026-09-10)*
 
 *Answer:* 
+
+**111\.  Held seats and instructor blocks** — a semi-private slot is sometimes kept open beside a struggling or special-needs child, and teachers block time for a regular break or an ad hoc absence. Are these one thing or two, how long does a held seat last, and who sets it? *(added 2026-09-16 from the export session)*
+
+*Answer:* *(Findings §3.1, Round 3, September 2026)* Two distinct mechanisms, not one. (1) A **student-seat hold**: a semi-private slot blocked from a second student for a set number of weeks, typically 4, when a teacher thinks a child needs it temporarily — a held-seat flag with a review date defaulting to four weeks. (2) An **instructor time block**: the teacher's regular break, or an ad hoc block for a day (in late, leaving early, out sick and the office does not want to offer the time to callers) — today "create a break" in FileMaker. Both are excluded from availability in every matching feature; they should not share one flag.
+
+**112\.  When a family is offered a lesson time pending payment, how long is the slot held?** *(added 2026-09-16 from the export session)*
+
+*Answer:* *(Findings §2.2, Round 3, September 2026)* Until **5:00 pm the following day**. If unpaid by then, the hold releases, the slot returns to availability, and the invoice is cancelled.
+
+**113\.  Make-up offers: when an offer expires, should the slot move to the next family automatically, or do you want to approve each hand-off?** And when a family misses the window and loses the slot, should they be told ("that time has been taken, here's what's still open") — today nothing informs them. Should a request still enter the queue when the family holds no eligible credit, so you at least know they asked? *(added 2026-09-16 from package v3 §2.4)*
+
+*Answer:*
+
+**114\.  The once-per-family holiday proration** — when a holiday make-up is skipped and tuition prorated instead as a goodwill gesture, does the one allowance cover the **whole family** or **each child**? And does a holiday closure create a noticeable spike in competing make-up requests, given everyone scheduled that day is credited at once? *(added 2026-09-16 from package v3 §3.9)*
+
+*Answer:*
+
+**115\.  How should the accountant record a trade** — lessons exchanged for goods or services — now that the system will carry it as a payment type with a dollar value and a note? *(added 2026-09-16 from the export session; for the accountant)*
+
+*Answer:*
 
 | Part 2: The Most Important Question |
 | :---- |

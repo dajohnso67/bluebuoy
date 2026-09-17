@@ -14,7 +14,7 @@
 - **Inferred** — reasoned from available evidence; treat as a hypothesis
 - **Open** — genuinely unknown, listed at the end
 
-**Known errors already corrected in this document** (recorded so the pattern is visible): an assumption that SMS capability had been lost when it hadn't; a guess that the prepay rate lock worked by script timing when it's fully manual; an over-designed authorization-tracking requirement for charter schools that doesn't match how funding actually works; a proposal to use lesson attendance for payroll verification that doesn't hold up. Several more were corrected by staff during review. **Expect more of these — verify before building.**
+**Known errors already corrected in this document** (recorded so the pattern is visible): an assumption that SMS capability had been lost when it hadn't; a guess that the prepay rate lock worked by script timing when it's fully manual; an over-designed authorization-tracking requirement for charter schools that doesn't match how funding actually works; a proposal to use lesson attendance for payroll verification that doesn't hold up; and an assumption that staff would curate a long list of make-up options down to a few, when in fact they deliberately offer only one or two because every held slot blocks another family. Several more were corrected by staff during review. **Expect more of these — verify before building.**
 
 ---
 
@@ -263,19 +263,31 @@ Every match in both views is a suggestion staff act on manually (contact family,
 1. Family submits availability for the coming week (via portal, or entered by staff from a call/email).
 2. **System validates they hold an unused make-up credit of the right lesson type** before queueing — no point routing a request that can't be fulfilled.
 3. Office is notified; the request arrives with **matching slots already populated** — ranked by closeness to their stated availability, wider matches shown below rather than hidden.
-4. **Office curates.** Staff drop anything that's a poor fit for reasons the system can't know — instructor chemistry, student pairing, sibling logistics. This step is deliberate and stays.
-5. Curated options go to the family by text or email.
+4. **Office selects one or two options only** — see below. This is a deliberate limit, not a shortlist from a long list.
+5. Options go to the family by text or email.
 6. Family accepts one; it books, and the credit is consumed.
 
 **This already exists as a manual convention.** A live waitlist row showed `8/27 offrd T` — "offered Tuesday, 8/27" — recorded as free text in a notes field, alongside a drop date. So staff are already running an offer process by hand; the design below formalizes what's being done rather than introducing a new workflow.
 
-**Slot contention — sequential offers, not simultaneous:**
-A slot is offered to **one family at a time**. If they don't respond within a set window, the offer expires and **automatically advances to the next candidate** in the queue. Requirements:
-- A **configurable response window** (confirm the right duration with staff).
-- The slot is **genuinely held** during an active offer, so no double-booking is possible.
-- **Automatic cascade** on expiry — staff shouldn't have to notice and re-offer manually.
+**The governing constraint — corrected by the billing/scheduling lead.** An earlier draft of this section assumed staff would narrow a long list of matches down to a handful of good options. That is the wrong model. The actual constraint is different and more important:
+
+> Many families are looking for make-ups in the same narrow window. Every hour a slot sits held against an unanswered offer is an hour another interested family cannot take it. Holding a time for hours only to learn the family can't do that time or teacher costs a second family their opportunity.
+
+So the design goal is **minimising how long any slot stays held**, not maximising the choice presented. Concretely:
+
+- **Offer one or two options at most.** Not a curated shortlist — a deliberately small offer, because each option offered is a slot held.
+- **Short response windows.** Plausibly an hour or two, not a day. Confirm the default with staff.
+- **The window should be adjustable per offer** — a slot three days out can afford longer than one tomorrow.
+- **Slot contention is handled sequentially:** a slot is offered to one family at a time and genuinely held during an active offer, so double-booking is impossible.
+- **Automatic cascade on expiry** to the next candidate, so staff don't have to notice and re-offer. *(Open: whether staff want this fully automatic or prefer to approve each hand-off.)*
 - **Staff visibility** into where a slot sits in its queue: who holds the current offer, how long remains, who's next.
+- **Show how many families are waiting on a given slot.** If six families could take Thursday 10:20, that argues for a much shorter window than if only one could. The system knows this number; surfacing it helps staff set the window sensibly.
 - Staff can **override the queue order** — priority cases exist.
+
+**Open questions for staff:**
+- Should an expiring offer cascade automatically, or should staff approve each hand-off?
+- When a family doesn't reply and loses the slot, should they be told? Currently nothing informs them. A short "that time has been taken, here's what's still open" message is more honest than silence and may improve response times.
+- Should a request still enter the queue if the family holds no eligible credit, so staff at least know they asked?
 
 **When nothing matches:** the office should see that immediately and respond in one action — rather than discovering it by scanning an empty list. Offer to carry the request into the following week, or add the family to a notify list for that slot type.
 
@@ -752,13 +764,36 @@ The billing engine resolves which denomination applies at the moment the family 
 4. **Credit conversion is an auditable event**, with a clear before/after, so it's explicable to a family who asks about it later.
 5. **Outstanding credit liability report.** Because dollar credits never expire, unredeemed credit accumulates indefinitely on the books. Management should be able to see total outstanding credit at any time — both for financial visibility and to spot dormant accounts worth reaching out to. (Related in spirit to the unused make-up credit balances noted in 3.5.)
 
-### 3.9 Closures: Two Distinct Types
-The system currently treats these the same way, but they behave oppositely and the new app should model them separately:
+### 3.9 Closures and Bulk Make-Up Issuance
+**Confirmed with the billing/scheduling lead.** Two structurally different kinds of closure, plus a per-family alternative to issuing credits at all.
 
-- **Scheduled annual closure** (the two-week December/January closure): known in advance, absorbed into the annual flat rate, **generates no make-up credits**. Billing is unaffected — note that `Billing_Months` has no lesson-count field, so monthly tuition is flat regardless of how many lessons fall in a given month. This is a normal tuition model and worth preserving deliberately rather than by accident.
-- **Incidental closures** (individual holidays like Memorial Day and Presidents Day, confirmed on live student records; weather; pool maintenance): these **do** generate Out Lessons and make-up credits for every affected student, via a bulk operation.
+**Scheduled annual closure** (the two-week December/January break): known in advance, absorbed into the annual flat rate, **generates no make-up credits**. Billing is unaffected — `Billing_Months` has no lesson-count field, so monthly tuition is flat regardless of how many lessons fall in a month. A normal tuition model, worth preserving deliberately rather than by accident.
 
-The new app needs a closure record with an explicit type that determines whether make-ups are issued — plus, for incidental closures, the "close this pool/date and issue make-ups to everyone affected" bulk action described in 3.4. Also worth noting: the legacy `Holiday_Dates` table holds only 6 records, so it appears to be a small working set rather than a durable multi-year closure calendar — the new system should keep a real, permanent closure calendar.
+**Incidental closures** (individual holidays such as Memorial Day and Presidents Day, confirmed on live student records; weather; pool maintenance): these **do** generate Out Lessons and make-up credits for affected students, issued in bulk.
+
+**Once issued, a holiday credit is an ordinary make-up credit.** Confirmed explicitly — same (absence of) expiry, same conversion ratios, same redemption and offer process. Nothing about it behaves differently. The only thing distinctive about a closure is *how the credits get created*.
+
+**Bulk issuance is straightforward given the right search.** Staff describe it as easy provided they can quickly find the affected set:
+- **All students with a lesson on a given weekday** — e.g. everyone on Mondays when a Monday holiday falls.
+- **All students in a given pool** — e.g. Big pool closed and those students can't be moved to the Small pool.
+
+So the requirement is a bulk action built on the existing search capability (2.6): select a date, optionally filter by pool or day, review the resulting student set, then act.
+
+**The third path — skip the make-up and prorate tuition instead.** Rather than issuing a credit, staff sometimes waive the lesson entirely and prorate the family's tuition. Two situations:
+
+1. **A new student whose first lesson falls on a closure.** The holiday is skipped and their tuition prorated to start from the next real lesson date. Issuing a make-up credit before they've taken a single lesson would be odd.
+2. **A retention gesture.** Staff will skip holiday make-ups and prorate tuition to go above and beyond for a family they want to keep. **This is allowed once per family — not annually.**
+
+**Design requirements:**
+1. **Closure records carry an explicit type** determining whether make-ups are issued at all.
+2. **Bulk closure action** — "close this date (optionally this pool), show me who's affected" — then per-student choice of *issue credit* or *skip and prorate*. The default is issue credit; the exception is deliberate.
+3. **The once-per-family goodwill allowance must be tracked by the system.** This is exactly the kind of rule that cannot be held reliably in memory across hundreds of families and multiple years. It needs to be a flag on the family record recording the date and which closure it applied to, so that when a family asks again the answer is on screen. Without this the rule is unenforceable in practice.
+4. **Proration is computed, not hand-calculated** — consistent with 2.8, and it should use the same mechanism rather than a free-text adjustment.
+5. **A permanent multi-year closure calendar.** The legacy `Holiday_Dates` table holds only 6 records, so it appears to be a small working set rather than a durable calendar.
+
+**Open questions for staff:**
+- Does the once-per-family goodwill allowance apply to the **whole family** or **per child**? If three siblings are enrolled, is one use the family's entire allowance?
+- Does a holiday closure create a noticeable spike in competing make-up requests, given that everyone scheduled that day receives a credit at once and make-ups book only one week out?
 
 ### 3.10 Cancellation Rules
 - A cancelled lesson (marked absent, or cancelled in advance) generates a make-up credit by default, unless explicitly flagged not to (the legacy "do not issue" guard — this should map to an explicit reason code: e.g., late cancellation past a cutoff, no-call/no-show, vs. instructor-initiated cancellation).
@@ -889,11 +924,14 @@ Protection is therefore layered, with backups as the last resort rather than the
 3. Is family-level or student-level billing the canonical source of truth for invoicing? (`Billing_Months` populates both keys today.)
 4. **Should make-up credits expire?** Balances of 24–28 unused credits appear normal, and with confirmed conversion ratios the true liability is larger than a raw count suggests. Decide the policy; build the unused-credit report either way.
 5. **How should Adult class no-shows be handled?** Staff have flagged the current behaviour (seat lost, nothing deducted) as a problem. Options include a notification window or simply reporting repeat no-shows — a business decision, not a technical one.
-6. How long should a make-up offer be held before cascading to the next family in the queue?
-7. Should the ALL-CAPS "difficult parent" convention be carried forward, or replaced with a structured, access-controlled account note?
-8. Should families ever get self-service make-up booking, or does it stay desk-mediated?
-9. For waitlist matches: once staff trust the matching over a season, is auto-notifying the family (with a claim window) ever in scope, or does every match always route through desk staff?
-10. How common are one-off pricing arrangements (like the private-at-semi-private-rate case)? If frequent, the special pricing override deserves proper design rather than a workaround.
+6. **How long should a make-up offer be held before cascading?** Staff have confirmed the window should be short — an hour or two rather than a day — because every held slot blocks another family. Confirm the default.
+7. **Should an expiring offer cascade automatically, or should staff approve each hand-off?**
+8. **Should a family who misses an offer window be told the slot was taken?** Currently nothing informs them.
+9. **Does the once-per-family holiday-proration allowance apply to the whole family or per child?**
+10. Should the ALL-CAPS "difficult parent" convention be carried forward, or replaced with a structured, access-controlled account note?
+11. Should families ever get self-service make-up booking, or does it stay desk-mediated?
+12. For waitlist matches: once staff trust the matching over a season, is auto-notifying the family (with a claim window) ever in scope, or does every match always route through desk staff?
+13. How common are one-off pricing arrangements (like the private-at-semi-private-rate case)? If frequent, the special pricing override deserves proper design rather than a workaround.
 
 ## Appendix: Legacy File Inventory (confirmed from FileMaker Server host)
 The DDR analysis referenced several files that turned out to exist outside the original export. Confirmed live on the host:

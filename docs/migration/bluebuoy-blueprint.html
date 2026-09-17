@@ -602,8 +602,8 @@
             <ul>
               <li><b>household</b>The billing family unit. Siblings share one.</li>
               <li><b>person</b>One row per human — name, contact, date of birth.</li>
-              <li><b>household_member</b>Role: student, guardian, billing contact. An adult student holds two roles rather than occupying two records.</li>
-              <li><b>student_profile</b>Level and status. Swim-specific attributes only.</li>
+              <li><b>household_member</b>Role: student, guardian, billing contact, plus the relationship label FileMaker already stores. An adult student holds two roles rather than occupying two records.</li>
+              <li><b>student_profile</b>Level, status, pool, and an instructor-confirmed big-pool readiness date. Swim-specific attributes only; Level-4 students are surfaced to assess, never moved automatically.</li>
               <li><b>instructor</b>Employment status.</li>
             </ul>
           </div>
@@ -625,11 +625,14 @@
             <ul>
               <li><b>slot</b>Instructor, weekday, time, class type, capacity. The recurring place a family holds.</li>
               <li><b>slot_override</b>An empty group slot lent for one day to other lesson types when a sub is needed — a dated action, never an edit to the slot.</li>
+              <li><b>seat_hold · instructor_block</b>Two constructs, never one flag: a semi-private seat kept free beside a child who needs it, with a review date defaulting to four weeks; and a teacher's break or a day's blocked time. Both excluded from availability everywhere.</li>
               <li><b>enrollment</b>A student's claim on a slot, with a billing mode: monthly tuition or class pack. The billable relationship.</li>
+              <li><b>enrollment_offer</b>A seat held while the family pays, until 5 pm the following day; then the seat returns and the payment request is cancelled.</li>
               <li><b>lesson</b>One dated occurrence, held as a time range.</li>
               <li><b>attendance</b>Status, who marked it, which device, and a client UUID that makes offline replay safe.</li>
-              <li><b>closure</b>Date range, reason, and whether it issues credit.</li>
+              <li><b>closure · closure_waiver</b>Date range, scope (all, one pool, one weekday), reason, and whether it issues credit. Bulk issuance lists everyone affected; per student, a credit or a waiver that prorates tuition instead — the goodwill waiver once per household, recorded so the rule is enforceable.</li>
               <li><b>waitlist_entry</b>Desired class type and the availability the family stated.</li>
+              <li><b>makeup_offer</b>One or two options offered to one family at a time, each slot genuinely held for a short window — an hour or two, adjustable — then passed to the next candidate. Minimises held time rather than maximising choice.</li>
             </ul>
           </div>
           <div class="group">
@@ -642,16 +645,17 @@
               <li><b>price_agreement</b>The rate this enrollment pays, its reason, and the dates it holds.</li>
               <li><b>invoice · invoice_line</b>Line unit amounts are snapshots: reprinting a two-year-old invoice reproduces it exactly.</li>
               <li><b>credit · credit_application · credit_event</b>One denominated ledger — private, semi-private, group — in whole-lesson units (ADR-0003). Booking a make-up reserves a credit, the lesson consumes it, a school cancellation releases it; conversions, sibling transfers, reversals and expiries are events, and nothing is deleted. Expiry is a rule row. Adult absences issue no credit. A balance is a query, never a field.</li>
-              <li><b>payment</b>No cap on payments per month.</li>
+              <li><b>payment · payment_request · billing_exemption</b>No cap on payments per month; a trade is a payment with a dollar value and a note. A payment request is a hosted link sent by SMS with a computed amount, so office staff never see a card. A billing exemption is today's "do not bill", with a reason from a short list.</li>
               <li><b>billing_run · exception</b>The queue that replaces the spreadsheet cross-reference.</li>
             </ul>
           </div>
           <div class="group">
             <h5>Flags, notes, documents</h5>
             <ul>
-              <li><b>flag</b>Allergy, support need, swim diaper, account handling. Typed data replacing typography.</li>
+              <li><b>flag</b>Allergy, support need, swim diaper, account handling. Typed data replacing typography; the office-only account-handling flag carries a reason and renders the guardian's name in caps on office screens, as staff read it today.</li>
               <li><b>note</b>Explicit audience: office, instructor, or both.</li>
               <li><b>document</b>Invoice PDFs, intake forms. Container fields and the institutional paper trail land here.</li>
+              <li><b>audit_event</b>Every override action and deletion: what, who, when, why. Discretion stays; it becomes explicable.</li>
             </ul>
           </div>
         </div>
@@ -717,12 +721,15 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
               <tr><td class="mono nw">enrollment.created</td><td>Resolve price agreement, apply sibling step, check eligibility and capacity</td></tr>
               <tr><td class="mono nw">enrollment.changed</td><td>Close the outgoing price agreement, open the incoming one, mark the period for proration</td></tr>
               <tr><td class="mono nw">lesson.cancelled</td><td>Issue a make-up credit where policy calls for one, notify the family</td></tr>
-              <tr><td class="mono nw">closure.declared</td><td>Cancel every lesson in range, issue credits where the closure carries them, send the bulk notice</td></tr>
+              <tr><td class="mono nw">closure.declared</td><td>Cancel every lesson in range (optionally one pool or weekday), list everyone affected, issue credits or record a waiver and prorate, send the bulk notice</td></tr>
               <tr><td class="mono nw">attendance.marked</td><td>Advance progression signals, feed the coverage view, consume a class-pack lesson for a pack-mode enrollment marked present (or record a deficit)</td></tr>
               <tr><td class="mono nw">invoice.issued</td><td>Render the PDF, attach it to the payer, start the terms clock</td></tr>
               <tr><td class="mono nw">payment.failed</td><td>Raise an exception, notify the office, flag the card</td></tr>
               <tr><td class="mono nw">makeup.booked · makeup.cancelled</td><td>Reserve the credit (converting first if staff chose to) / release it</td></tr>
               <tr><td class="mono nw">credit.converted · credit.transferred</td><td>Consume the source credits, issue the target at the table rate or to the sibling, record the actor</td></tr>
+              <tr><td class="mono nw">makeup.offered · offer.expired</td><td>Hold the slot and reserve the credit for the window; on expiry release both and advance to the next candidate</td></tr>
+              <tr><td class="mono nw">enrollment.offered · enrollment_offer.expired</td><td>Hold the seat and send the payment request; unpaid at 5 pm the next day, release the seat and cancel the request</td></tr>
+              <tr><td class="mono nw">payment_request.paid</td><td>Post the payment, apply it, confirm the enrollment — no hand matching</td></tr>
             </tbody>
           </table>
         </div>
@@ -809,7 +816,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
 
         <h3>Integrations</h3>
         <ul>
-          <li><strong>Authorize.Net</strong> — kept, with Customer Information Manager holding the card vault so cards survive cutover; Accept.js captures cards in the browser so numbers never touch the server; CIM charges a computed monthly amount, never ARB; the processor sits behind one internal interface. Enable Account Updater, which appears to be off. Volume is confirmed at $156k–$207k a month, which is why the stack stays.</li>
+          <li><strong>Authorize.Net</strong> — kept, with Customer Information Manager holding the card vault so cards survive cutover; Accept.js captures cards in the browser so numbers never touch the server; CIM charges a computed monthly amount, never ARB; the processor sits behind one internal interface. Enable Account Updater, which appears to be off. Volume is confirmed at $156k–$207k a month, which is why the stack stays. Payment requests ride the same gateway: a hosted link per household sent by SMS with a computed amount, so office staff never see a card; the product and flow are map tickets. The legacy card scrub is operations outside this plan, except that the frozen archive at cutover is made after it.</li>
           <li><strong>SMS</strong> — replaces fmSMS, which sits on a Twilio account; talk to Twilio directly and keep the sender number. Inbound replies need a destination.</li>
           <li><strong>QuickBooks</strong> — stays the accounting system; the app produces clean exports (the ledger, P&amp;L and balance sheet the accountant receives each January) rather than replacing it.</li>
           <li><strong>PDF</strong> — server-side rendering of invoices, stored as documents.</li>
@@ -825,7 +832,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
           <div class="num">1</div>
           <div>
             <h3>Foundations</h3>
-            <p>The schema for identity, scheduling, and flags — money tables follow with Billing; the repeatable, non-destructive import for that slice; the <strong>decode pass</strong> narrowed to every deck-visible convention (ALL-CAPS student names, the under-4 diaper rule); individual accounts with PIN at shift start and session/device management; hosting, backup, and point-in-time recovery with one tested restore. An <strong>archive</strong> concept from the start — households restorable, never deleted — because the FM_2024 file exists only as a performance workaround, and what the import does with it is a map decision. The 2026-09-14 live export sized this phase: 5,654 students referenced by billing rows are missing from the live file, a third of schedule rows are holds, breaks or placeholders rather than enrollments, and instructor joins can go by id rather than name. The <strong>archaeology</strong> track — the remaining institutional artifacts — runs alongside without gating this phase.</p>
+            <p>The schema for identity, scheduling, and flags — money tables follow with Billing; the repeatable, non-destructive import for that slice; the <strong>decode pass</strong> narrowed to every deck-visible convention (ALL-CAPS student names, ALL-CAPS guardian names as the office-only handling flag, the under-4 diaper rule); individual accounts with PIN at shift start and session/device management; hosting, backup, and point-in-time recovery with one tested restore. An <strong>archive</strong> concept from the start — households restorable, never deleted — because the FM_2024 file exists only as a performance workaround, and what the import does with it is a map decision. The 2026-09-14 live export sized this phase: 5,654 students referenced by billing rows are missing from the live file, a third of schedule rows are holds, breaks or placeholders rather than enrollments, and instructor joins can go by id rather than name. The <strong>archaeology</strong> track — the remaining institutional artifacts — runs alongside without gating this phase.</p>
             <div class="gate"><span class="tag">Gate</span><p>The import runs from BlueBuoy_FM — confirmed live — and the BlueBuoy_FM_2024 archive is accounted for per the archive decision, including the students the live file's billing rows reference but no longer hold; household, student, enrollment, and flag counts reconcile against FileMaker; ten sampled households match field by field, including flags and notes; no deck-visible convention remains undecoded.</p></div>
           </div>
         </div>
@@ -843,7 +850,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
           <div class="num">3</div>
           <div>
             <h3>Scheduling &amp; search</h3>
-            <p>Enrollment, schedule editing, waitlist, closures, and search. Search is the phase's centre of gravity, not a feature within it: a saved-search model plus a criteria builder reaching every field staff currently search, seeded with the Saved Finds they name. Plus make-up credit issuance and redemption — including conversion between denominations and sibling transfers, per ADR-0003 — closure handling with bulk make-ups, eligibility validation with override and per-class group bands, one-day repurposing of an empty group slot, the absence lookup as an instant action on the schedule board, the substitute-finding flow with its three constraints (instructor gender, level pairing, sibling proximity), and the deck-manager tools held out of the December slice.</p>
+            <p>Enrollment, schedule editing, waitlist, closures, and search. Search is the phase's centre of gravity, not a feature within it: a saved-search model plus a criteria builder reaching every field staff currently search, seeded with the Saved Finds they name. Plus make-up credit issuance and redemption — including conversion between denominations and sibling transfers, per ADR-0003 — closure handling with bulk issuance by weekday or pool and the once-per-household skip-and-prorate waiver, held seats and instructor blocks as two constructs, make-up offers of one or two options with short sequential holds, eligibility validation with override and per-class group bands, one-day repurposing of an empty group slot, the absence lookup as an instant action on the schedule board, the substitute-finding flow with its three constraints (instructor gender, level pairing, sibling proximity), and the deck-manager tools held out of the December slice.</p>
             <p>The make-up ledger imports here by <strong>replay</strong>: every out-lesson becomes an issued credit, every booked make-up a consumption in the denomination it names, and the replayed balance is compared per student to FileMaker's stored counters — every difference a reconciliation exception, two causes already known. A rehearsal against the 2026-09-14 export found FileMaker's stored counters stale for most students with activity; which balance the import trusts is a map ticket.</p>
             <div class="gate"><span class="tag">Gate</span><p>Replayed make-up balances match FileMaker's stored counters per student, or every difference is classified; every search in the parity enumeration &mdash; the system's own scripted and structured searches plus the daily finds and Saved Finds staff name &mdash; returns the same set as FileMaker on the same data, and deck staff run one full week of real scheduling in the new UI alongside the old, including one full make-up cycle.</p></div>
           </div>
@@ -853,7 +860,7 @@ CREATE UNIQUE INDEX billing_run_one_commit_per_period
           <div class="num">4</div>
           <div>
             <h3>Billing</h3>
-            <p>Begins only after the December 2026 rollover has run in FileMaker, and never cuts over in a peak month. The billing run state machine, pricing, credits, proration, rate-lock price agreements, the first-responder discount, enrollment holds and the one-year hold clock, class packs consumed on attendance (ADR-0004; legacy has nothing to replay, and the one hand-typed balance field turned out empty in the live export, so every adult lands on a review list with a balance to confirm), the full transaction ledger, invoice PDFs, the Authorize.Net integration, and the monthly prepay-ending and tuition-vs-batch checks as exception views. Dry runs only; nothing charges a card until the shadow gate is green.</p>
+            <p>Begins only after the December 2026 rollover has run in FileMaker, and never cuts over in a peak month. The billing run state machine, pricing, credits, proration, rate-lock price agreements, the first-responder discount, enrollment holds and the one-year hold clock, class packs consumed on attendance (ADR-0004; legacy has nothing to replay, and the one hand-typed balance field turned out empty in the live export, so every adult lands on a review list with a balance to confirm), payment requests by hosted link so no staff member handles a card, the billing-exemption list with reasons, trade payments, the full transaction ledger, invoice PDFs, the Authorize.Net integration, and the monthly prepay-ending and tuition-vs-batch checks as exception views. Dry runs only; nothing charges a card until the shadow gate is green.</p>
             <p>FileMaker's pre-created future billing months need a decision of their own before this phase's import runs. They are not history, they are pre-materialized future state, and some hold prices that went stale the day the price list changed. Import them as what they are — a queue of intentions — and they become enrollments the billing run will price when each period arrives.</p>
             <div class="gate"><span class="tag">Gate</span><p>Open-credit counts reconcile per denomination and every future-dated billing month is accounted for; a dry run of the last closed month reproduces every FileMaker invoice to the cent, or names the difference and its cause; then monthly shadow runs until three consecutive months land green.</p></div>
           </div>

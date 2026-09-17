@@ -26,8 +26,13 @@ Seeded from the FileMaker analysis and [`qa.md`](./qa.md). Terms marked **open**
 - **Enrollment** — a student's claim on a slot over a date range. The billable relationship.
 - **Lesson** — one dated occurrence of a slot. The thing attended, cancelled, or made up.
 - **Attendance** — a student's outcome for a lesson, plus who marked it and on which device.
-- **Closure** — a date range the pool is shut: the December/January break, a holiday, weather, maintenance. Carries whether it issues credit.
+- **Closure** — a date range the pool is shut: the December/January break, a holiday, weather, maintenance. Carries whether it issues credit; an incidental closure issues credits in bulk by weekday or pool, per student either a credit or a closure waiver.
 - **Waitlist entry** — a student wanting a slot that does not exist yet, with the availability their family stated.
+- **Seat hold** — a semi-private slot kept free of a second student for a set period, typically four weeks, because a teacher thinks a child needs it; carries a review date. A seat attribute, never a student attribute (qa.md Q111, answered).
+- **Instructor block** — a teacher's regular break or an ad hoc block for a day, excluded from availability like a seat hold but a different thing: day-level lifetime, no student (qa.md Q111, answered). _Avoid_: break, hold (FileMaker's `flag_hold` means "no lesson type").
+- **Enrollment offer** — a slot offered to a family pending payment. Holds the slot until 5 pm the following day, then releases it and cancels the payment request (qa.md Q112, answered).
+- **Make-up offer** — one or two slots offered to a family holding a make-up credit, each genuinely held for a short window (an hour or two, adjustable per offer) and offered to one family at a time; on expiry the slot passes to the next candidate (qa.md Q102 assumed, Q113 open). _Avoid_: shortlist.
+- **Closure waiver** — skipping a holiday's make-up credit and prorating tuition instead: a new student whose first lesson falls on a closure, or a goodwill gesture allowed once per family and recorded so the answer is on screen next time (qa.md Q43 answered, Q114 open).
 
 ## Money
 
@@ -49,8 +54,15 @@ Seeded from the FileMaker analysis and [`qa.md`](./qa.md). Terms marked **open**
 - **Billing run** — the month-end process that prices every active enrollment and issues invoices. Runs in three modes: dry run, shadow, committed.
 - **Exception** — a household the billing run declines to price without a human look. Replaces the spreadsheet cross-reference.
 - **Adjustment** — a deliberate one-off correction to an invoice, with a reason and an author. Kept for real one-offs, once the routine cases become price agreements and credits.
+- **Payment request** — a hosted payment link sent to a household (SMS first) carrying an amount the system computed; the family enters its own card and the payment posts back. Office staff never see or type a card (qa.md Q35 Round 3; flow open on the map). _Avoid_: invoice (that is the payer-facing document), phone payment.
+- **Billing exemption** — a household the billing run skips on purpose, with a reason from a short list — trade, staff family, courtesy, other — and a note. Today's "do not bill", about twenty households (qa.md Q51, answered). _Avoid_: do not bill.
+- **Trade** — lessons exchanged for goods or services, recorded as a payment of method trade with a dollar value and a note (qa.md Q51 answered; Q115 open for the accountant).
 
 ## Flags & notes
 
-- **Flag** — typed, structured fact about a student that changes how staff act: allergy, support need, swim-diaper requirement, account handling. Replaces meaning encoded in ALL CAPS names and colour highlights (qa.md Q67, Q68, Q71).
+- **Flag** — typed, structured fact about a student that changes how staff act: allergy, support need, swim-diaper requirement, account handling. Replaces meaning encoded in ALL CAPS names and colour highlights (qa.md Q67, Q68, Q71, answered).
+- **Account handling flag** — the office-only "handle with care" flag on a guardian, with a reason note; office screens render the guardian's name in caps when it is set, and instructors and families never see it (qa.md Q71, answered). _Avoid_: difficult parent.
+- **Override action** — one of a short set of discretionary actions — adjust a bill by an amount, set a special price, issue or waive a credit, hold a seat, refund or offer a make-up — each recording who and a one-line reason. Discretion is a design requirement, not a gap (Findings §3.2).
+- **Audit event** — the record of an override action or a deletion: what, who, when, why. FileMaker's `Audits` table holds only schedule deletions (Findings §2.4).
+- **Big-pool readiness** — an instructor-confirmed, dated judgement that a student can stand in the big pool's shallow end and move from the small pool; the system surfaces Level-4 students to assess and never decides (Findings §3.6).
 - **Note** — free text about a student or household, with an explicit audience: office-only, instructor-visible, or both.
