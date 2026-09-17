@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blue Buoy Migration: Blocked Issues</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root {
+    color-scheme: light dark;
+    --ground: #F5F8F8; --surface: #FFFFFF; --surface-sunk: #EDF3F3;
+    --ink: #10201F; --ink-soft: #46605F; --ink-faint: #6E8685;
+    --rule: #D6E1E0; --rule-soft: #E6EDEC;
+    --accent: #0D6B72; --accent-ink: #0A555B; --accent-wash: #E0EFEF;
+    --open: #9A5B12; --open-wash: #F7EBDA;
+    --block: #A3352B; --block-wash: #F8E4E1;
+    --green: #2C6B4B; --green-wash: #E3F0E8;
+    --shadow: 0 1px 2px rgba(16,32,31,.05), 0 8px 24px -16px rgba(16,32,31,.25);
+    --f-display: "IBM Plex Sans Condensed", "Helvetica Neue", Arial, sans-serif;
+    --f-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0B1414; --surface: #111D1D; --surface-sunk: #162423;
+      --ink: #E8EFEE; --ink-soft: #A6BCBA; --ink-faint: #7C9391;
+      --rule: #243938; --rule-soft: #1B2C2B;
+      --accent: #56B5B9; --accent-ink: #7FCDD0; --accent-wash: #16302F;
+      --open: #D9A05B; --open-wash: #2E2416;
+      --block: #E48A80; --block-wash: #33191A;
+      --green: #6BB48C; --green-wash: #14281E;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--f-body); font-size: 17px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+  .shell { max-width: 880px; margin: 0 auto; padding: 0 24px 96px; }
+  .masthead { padding: 64px 0 32px; border-bottom: 1px solid var(--rule); }
+  .eyebrow { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin: 0 0 16px; }
+  h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(34px, 5.5vw, 52px); line-height: 1.05; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  h1 .sub { display: block; color: var(--ink-faint); font-weight: 500; font-size: clamp(18px, 2.4vw, 24px); letter-spacing: 0; margin-top: 10px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 24px; font-family: var(--f-mono); font-size: 12.5px; color: var(--ink-faint); }
+  .meta b { color: var(--ink-soft); font-weight: 500; }
+  main { padding-top: 48px; }
+  section + section { margin-top: 56px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; padding-bottom: 12px; border-bottom: 2px solid var(--ink); margin-bottom: 28px; }
+  .sec-head .n { font-family: var(--f-mono); font-size: 13px; color: var(--accent); font-weight: 500; }
+  h2 { font-family: var(--f-display); font-weight: 600; font-size: clamp(24px, 3.2vw, 31px); letter-spacing: -.01em; line-height: 1.15; margin: 0; }
+  p { margin: 0 0 16px; max-width: 68ch; }
+  .lead { font-size: 21px; line-height: 1.45; max-width: 60ch; }
+  .lead b { font-weight: 600; color: var(--block); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 24px 0 8px; }
+  .tile { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .tile .v { font-family: var(--f-display); font-weight: 700; font-size: 34px; line-height: 1; letter-spacing: -.02em; }
+  .tile .v.block { color: var(--block); }
+  .tile .v.ok { color: var(--green); }
+  .tile .l { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); margin-top: 8px; line-height: 1.4; }
+  .card { background: var(--surface); border: 1px solid var(--rule); border-left: 5px solid var(--block); border-radius: 0 10px 10px 0; padding: 20px 24px; box-shadow: var(--shadow); margin: 0 0 20px; }
+  .card h3 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0 0 4px; letter-spacing: -.01em; }
+  .card h3 a { color: inherit; text-decoration: none; }
+  .card h3 a:hover { color: var(--accent); }
+  .card .id { font-family: var(--f-mono); font-size: 12px; color: var(--ink-faint); margin: 0 0 14px; letter-spacing: .04em; }
+  .sev { display: inline-flex; align-items: center; gap: 8px; font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; padding: 4px 11px; border-radius: 999px; margin-left: 10px; vertical-align: middle; }
+  .sev::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .sev.high { color: var(--block); background: var(--block-wash); }
+  .sev.med { color: var(--open); background: var(--open-wash); }
+  dl { margin: 0; display: grid; grid-template-columns: 150px 1fr; gap: 10px 16px; max-width: 72ch; }
+  dt { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); padding-top: 5px; }
+  dd { margin: 0; }
+  dd a { color: var(--accent-ink); }
+  code { font-family: var(--f-mono); font-size: .88em; background: var(--surface-sunk); padding: 1px 5px; border-radius: 4px; }
+  @media (max-width: 520px) { dl { grid-template-columns: 1fr; gap: 2px 0; } dd { margin-bottom: 10px; } }
+  .excluded { list-style: none; padding: 0; margin: 0; max-width: 72ch; }
+  .excluded li { display: grid; grid-template-columns: 64px 1fr; gap: 16px; padding: 10px 0; border-top: 1px solid var(--rule-soft); margin: 0; }
+  .excluded li:last-child { border-bottom: 1px solid var(--rule-soft); }
+  .excluded .n { font-family: var(--f-mono); font-size: 12.5px; color: var(--green); font-weight: 500; padding-top: 4px; }
+  .excluded .why { color: var(--ink-soft); }
+  footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--rule); font-family: var(--f-mono); font-size: 12px; color: var(--ink-faint); }
+  footer a { color: var(--accent-ink); }
+</style>
+</head>
+<body>
+<div class="shell">
+<header class="masthead">
+  <p class="eyebrow">Blue Buoy · FileMaker to web migration</p>
+  <h1>Blocked Issues<span class="sub">Hard stoppers on the decision map, and what holds each one</span></h1>
+  <div class="meta">
+    <span><b>Prepared</b> 2026-09-16</span>
+    <span><b>Source</b> open issues in dajohnso67/bluebuoy, GitHub native dependencies</span>
+    <span><b>Audience</b> whoever can clear a blocker this week</span>
+  </div>
+</header>
+
+<main>
+<section>
+  <p class="lead"><b>2 blocked issues</b> out of 9 open. Each one waits on a single open ticket; closing that ticket releases it.</p>
+  <div class="tiles">
+    <div class="tile"><div class="v block">2</div><div class="l">Blocked</div></div>
+    <div class="tile"><div class="v">9</div><div class="l">Open issues</div></div>
+    <div class="tile"><div class="v ok">2</div><div class="l">Tickets that clear them</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="n">01</span><h2>The blocks</h2></div>
+
+  <article class="card">
+    <h3><a href="https://github.com/dajohnso67/bluebuoy/issues/19">Payment request flow and the payment-capture adapter</a><span class="sev high">High</span></h3>
+    <p class="id">Issue #19 · wayfinder:grilling · child of map #1</p>
+    <dl>
+      <dt>Root cause</dt>
+      <dd>Research ticket <a href="https://github.com/dajohnso67/bluebuoy/issues/18">#18</a> (Authorize.Net hosted payment links per household: which product, and can they go by SMS) is still open. The flow cannot be specified until the link product is known.</dd>
+      <dt>Impact radius</dt>
+      <dd>Holds PLAN.md §2 (<code>payment_request</code>, <code>enrollment_offer</code>), §4 Integrations, the blueprint re-render, and the Billing gate's end-to-end shadow test. The payment-capture fog on the map stays open.</dd>
+      <dt>Clears when</dt>
+      <dd>#18 closes with the product named.</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <h3><a href="https://github.com/dajohnso67/bluebuoy/issues/13">The BlueBuoy_FM_2024 archive: what the import does with archived families</a><span class="sev med">Medium</span></h3>
+    <p class="id">Issue #13 · wayfinder:grilling · child of map #1</p>
+    <dl>
+      <dt>Root cause</dt>
+      <dd>Task <a href="https://github.com/dajohnso67/bluebuoy/issues/14">#14</a> (residual exports: Holiday_Dates and the BlueBuoy_FM_2024 archive) has not delivered the archive's Families and Students counts and date ranges. Its other blocker, #6 live CSV export, is already closed.</dd>
+      <dt>Impact radius</dt>
+      <dd>Holds the archived-household import decision, the returning-family restore path, and what the Foundations gate counts. Does not touch live-file import.</dd>
+      <dt>Clears when</dt>
+      <dd>#14 closes with the archive sub-export profiled.</dd>
+    </dl>
+  </article>
+</section>
+
+<section>
+  <div class="sec-head"><span class="n">02</span><h2>Not blocked</h2></div>
+  <p>Listed so nobody re-checks them. This tracker expresses blocks only through issue dependencies; no issue carries a closure or impassable label.</p>
+  <ul class="excluded">
+    <li><span class="n">#17</span><span class="why">Schedule-row kinds at import. Its only blocker, sweep 3 (#15), is closed. The body still carries a stale "Blocked by" sentence; the dependency is what counts.</span></li>
+    <li><span class="n">#18</span><span class="why">Authorize.Net payment-link research. Open and unblocked; it is the ticket holding #19.</span></li>
+    <li><span class="n">#14</span><span class="why">Residual exports. Open and unblocked; it is the ticket holding #13.</span></li>
+    <li><span class="n">#9</span><span class="why">Institutional billing artifacts. Assigned, no blockers.</span></li>
+    <li><span class="n">#7</span><span class="why">Search-parity daily-search enumeration. Assigned, past blocker closed.</span></li>
+    <li><span class="n">#5</span><span class="why">Staff question batch 1. Assigned, past blocker closed.</span></li>
+    <li><span class="n">#1</span><span class="why">The wayfinder map itself.</span></li>
+  </ul>
+</section>
+</main>
+
+<footer>Generated from the live dependency graph on 2026-09-16. Companion to the <a href="exec-summary.html">executive summary</a> and the <a href="bluebuoy-blueprint.html">migration blueprint</a>. Re-run the blocked-issues prompt when the open-issue set changes.</footer>
+</div>
+</body>
+</html>
