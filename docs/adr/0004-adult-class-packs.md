@@ -10,6 +10,8 @@ Everything staff have not yet decided is a rule row rather than a design: `adult
 
 Import: there is nothing to replay. Each adult's `Adult_Credit` value, where present, becomes one opening `class_pack` of that size with a null price (unknowns stay unknown), and every adult enrollment lands on an import review list for the office to confirm the balance. Adult billing-month rows import like every other pre-created month — as history where the month has closed, discarded with the reason "class pack" where it has not.
 
+*Addendum 2026-09-16 (data profile of the 2026-09-14 export):* `Adult_Credit` is blank on all 127,697 `Lesson_Schedules` rows, so no opening packs come from it; every adult enrollment imports with an unknown balance and sits on the review list until the office confirms it. The decision stands; only its import clause loses its input.
+
 Considered and rejected: folding packs into the credit ledger (mixes purchase revenue into the credit liability report); blocking attendance on an empty pack (gates the roll, which rule and ADR-0001 forbid); hard-wiring the model to Adult (a clinic sold as a pack later would be a redesign instead of a row).
 
 Two discrepancies go to staff in batch 2 (qa.md Q110): FileMaker's rate table prices Adult monthly, which contradicts "no monthly tuition at all"; and the schedule gives an Adult class five seats where staff said six. Both are rows either way.

@@ -8,3 +8,8 @@ resources/exports/
 
 # Institutional billing artifacts: invoices, portal screenshots, contracts (PII).
 resources/artifacts/
+
+# Raw live export (2026-09-13/14) and the unredacted Q&A originals: student/family PII
+# and embedded screenshots. Sanitised copies go to docs/; the raw folders never commit.
+resources/application-data/
+resources/q-and-a-context/

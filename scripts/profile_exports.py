@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Profile live FileMaker exports into the facts the DDR cannot yield.
 
-Usage:  python scripts/profile_exports.py resources/exports/YYYY-MM-DD > docs/discovery/data-profile-YYYY-MM-DD.md
+Usage:  python scripts/profile_exports.py <export folder> [label] > docs/discovery/data-profile-YYYY-MM-DD.md
+
+Files may be named <Table>.csv or <Table>_All.csv (the 2026-09-14 live export used the latter).
 
 Reads the Merge/CSV files listed in docs/discovery/data-profiling-export.md
 (one file per table, header row = FileMaker field names) and prints a Markdown
@@ -13,6 +15,7 @@ Standard library only. A missing table or column skips that fact and says so.
 import csv
 import glob
 import os
+import re
 import sys
 from collections import Counter, defaultdict
 from datetime import date, datetime
@@ -28,9 +31,61 @@ MISSING = []  # (table, column) pairs we could not find
 def find_file(folder, table):
     for cand in glob.glob(os.path.join(folder, "*")):
         base, ext = os.path.splitext(os.path.basename(cand))
-        if base.lower() == table.lower() and ext.lower() in (".csv", ".mer", ".tab", ".txt"):
+        if base.lower() in (table.lower(), table.lower() + "_all") and ext.lower() in (".csv", ".mer", ".tab", ".txt"):
             return cand
     return None
+
+
+# Columns kept per table when loading. None = keep everything (small tables).
+# The live export carries every field (Students alone has 285, three of them
+# 32 KB free text), so projecting on load keeps the big tables in memory.
+KEEP = {
+    "Staff": None,
+    "Billing_Rates": None,
+    "Holiday_Dates": None,
+    "Families": {"PrimaryKey", "ID_Family", "OLD_FAMILY_ID", "Family_Name", "Primary_Name_First",
+                 "Primary_Name_Last", "Secondary_Name_First", "Secondary_Name_Last", "Preferred_Billing",
+                 "Primary_Relation", "Secondary_Relation", "flag_active", "flag_trashcan",
+                 "CreationTimestamp", "ModificationTimestamp"},
+    "Students": {"PrimaryKey", "ID_Students", "id_family", "OLD_ID", "OLD_STUD_ID", "OLD_FAMILY_ID",
+                 "Name_First", "Name_Last", "Name_Mid", "Name_First_calc", "Primary_Name_First",
+                 "Secondary_Name_First", "Date_of_Birth", "Age", "Level", "Status", "Status_Recent",
+                 "flag_active", "flag_trashcan", "flag_Special_Needs", "flag_AD", "flag_has_free_trial",
+                 "flag_owes", "Payment_Plan", "Payment_Plan_CC_DD", "Lesson_Type_1", "Lesson_Type_2",
+                 "Lesson_Type_3", "Lesson_Type_4", "Last_Lesson_Date_Start", "Last_Lesson_Date_End",
+                 "CreationTimestamp", "ModificationTimestamp", "MU_SP_Total", "MU_PR_Total", "MU_PM_Total",
+                 "MU_ST_Total", "MU_GR_Total", "MU_Unknown_Total", "Makeups_Left", "OLD_MU_REMAINING",
+                 "OLD_MU_PREV_YEAR"},
+    "Billing_Months": {"PrimaryKey", "ID_Billing_Months", "id_student", "id_family", "id_billing_year", "Year",
+                       "Month_Num", "Month", "Payment_Plan", "Payment_Plan_CC_DD", "Payment_Type_1",
+                       "Payment_Type_2", "Amount_Paid_1", "Amount_Paid_2", "Date_Amt_Received_1",
+                       "Date_Amt_Received_2", "Monthly_Fee", "Monthly_Balance", "Cumulative_Balance",
+                       "Adjustment_Credit", "Prepay_Discount", "Rate_LessonType_1", "Rate_1",
+                       "flag_paid_in_full", "flag_create", "flag_new", "CreationTimestamp", "ModificationTimestamp"},
+    "Billing_Years": {"PrimaryKey", "ID_Billing_Years", "id_student", "id_family", "id_current_student", "Year",
+                      "Cumulative_Total", "Cumulative_Total_Prev_Year", "CreationTimestamp", "ModificationTimestamp"},
+    "Lesson_Schedules": {"PrimaryKey", "ID_Lesson_Schedule", "id_student", "id_family", "id_staff", "id_lesson",
+                         "Instructor", "Instructor_Nickname", "Lesson_Type", "Day", "Time_Start", "Time_End",
+                         "Date_Start", "Date_End", "Pool_Used", "Status", "CreationTimestamp",
+                         "ModificationTimestamp", "Lesson_MU", "Lesson_MU_to_use", "Lesson_MU_Amount",
+                         "flag_MU_Count", "Adult_Credit", "flag_dummy", "flag_hold", "flag_break", "Student",
+                         "flag_MU_SP", "flag_MU_PR", "flag_MU_PM", "flag_MU_GR", "flag_MU_ST", "flag_MU_AD"},
+    "Lesson_Attendance": {"PrimaryKey", "ID_Lesson_Attendance", "id_student", "id_staff", "id_lesson",
+                          "id_lesson_sched", "Instructor_Name", "Lesson_Type", "Date_Attendance", "Day", "Time",
+                          "flag_complete", "flag_ignore", "flag_Makeup", "flag_free_trial", "flag_Special_Needs",
+                          "flag_unpaid", "CreationTimestamp", "ModificationTimestamp"},
+    "Lessons": {"PrimaryKey", "ID_Lessons", "id_staff", "Instructor", "Instructor_Name_First", "Instructor_Nickname",
+                "OLD_INST_ID", "Type", "Day", "Time_Start", "Time_End", "Date_Start", "Date_End", "Slots_Total",
+                "Slots_Available", "Status", "flag_drop", "flag_has_break", "CreationTimestamp",
+                "ModificationTimestamp", "Student"},
+    "Lesson_Out": {"PrimaryKey", "ID_Lesson_Out", "id_student", "id_staff", "id_lesson", "id_lesson_sched",
+                   "Instructor", "Makeup_Type", "Date_Out", "flag_do_not_issue", "flag_count", "flag_missing_stud",
+                   "CreationTimestamp", "flag_MU_SP", "flag_MU_PR", "flag_MU_PM", "flag_MU_GR", "flag_MU_ST"},
+    "Waitlist": {"PrimaryKey", "ID_Waitlist", "id_student", "id_family", "id_lesson", "id_instructor_primary",
+                 "id_instructor_secondary", "Instructor_primary", "Instructor_secondary", "Lesson_Type", "Status",
+                 "Priority", "Date_Requested", "Date_Start", "Date_Drop", "Last_Checked", "flag_active", "flag_open",
+                 "flag_dropped", "CreationTimestamp"},
+}
 
 
 def load(folder, table):
@@ -46,11 +101,12 @@ def load(folder, table):
                 fh.seek(0)
                 delim = "\t" if sample.count("\t") > sample.count(",") else ","
                 reader = csv.DictReader(fh, delimiter=delim)
+                keep = KEEP.get(table)
                 rows = []
                 for r in reader:
                     # FileMaker exports embedded returns as \v; normalise.
                     rows.append({(k or "").strip(): (v or "").replace("\x0b", "\n").strip()
-                                 for k, v in r.items()})
+                                 for k, v in r.items() if keep is None or (k or "").strip() in keep})
                 return rows
         except UnicodeDecodeError:
             continue
@@ -347,6 +403,16 @@ def section_dual_keys(data):
                 c["id_family not in Families (orphan)"] += 1
         h(3, tname)
         table(["Outcome", "Rows"], sorted(c.items()))
+        orphan_ids = {r.get("id_student") for r in rs if r.get("id_student") and r.get("id_student") not in stu_fam}
+        if orphan_ids:
+            orphan_rows = [r for r in rs if r.get("id_student") in orphan_ids]
+            paid = sum(1 for r in orphan_rows if to_num(r.get("Amount_Paid_1", "")) or to_num(r.get("Amount_Paid_2", "")))
+            fee = sum(1 for r in orphan_rows if to_num(r.get("Monthly_Fee", "")))
+            oy = Counter(r.get("Year") or "?" for r in orphan_rows)
+            line(f"Orphan id_student values: {len(orphan_ids)} distinct; {paid} orphan rows carry a payment, "
+                 f"{fee} carry a Monthly_Fee.")
+            line()
+            table(["Year (orphan rows)", "Rows"], sorted(oy.items(), key=lambda kv: str(kv[0])))
         if years:
             line("Disagreements by year (Year column, else creation year):")
             line()
@@ -383,6 +449,12 @@ def section_caps(data):
     fam = data.get("Families")
     if fam and "Family_Name" in fam[0]:
         line(f"Families.Family_Name ALL CAPS: {sum(1 for r in fam if is_all_caps(r.get('Family_Name')))}")
+    for tname, column in (("Families", "Primary_Name_First"), ("Families", "Secondary_Name_First"),
+                          ("Students", "Primary_Name_First")):
+        rs = data.get(tname)
+        if rs and column in rs[0]:
+            line(f"{tname}.{column} ALL CAPS (the hand-typed 'handle with care' convention): "
+                 f"{sum(1 for r in rs if is_all_caps(r.get(column)))} of {sum(1 for r in rs if r.get(column))} populated")
     line()
     line("Reading: the on-screen caps come from `Name_First_calc`, which upper-cases *because of* the flag. "
          "Rows on the second line are the ones where caps carry meaning the flag does not, "
@@ -466,6 +538,270 @@ def section_money(data):
          "or rows on a CC plan. Compare with staff's reported 550-700.")
 
 
+def section_placeholders(data):
+    h(2, "Placeholder and pseudo rows (every real search excludes these)")
+    rows = []
+    ls = data.get("Lesson_Schedules")
+    if ls:
+        rows.append(("Lesson_Schedules with ID_Lesson_Schedule = DUMMY", sum(1 for r in ls if r.get("ID_Lesson_Schedule") == "DUMMY")))
+        if "flag_dummy" in ls[0]:
+            rows.append(("Lesson_Schedules with flag_dummy = 1", sum(1 for r in ls if truthy(r.get("flag_dummy")))))
+        if "Student" in ls[0]:
+            rows.append(("Lesson_Schedules whose Student text starts with 'Inst'",
+                         sum(1 for r in ls if (r.get("Student") or "").strip().lower().startswith("inst"))))
+        if "flag_hold" in ls[0]:
+            rows.append(("Lesson_Schedules with flag_hold = 1", sum(1 for r in ls if truthy(r.get("flag_hold")))))
+        if "flag_break" in ls[0]:
+            rows.append(("Lesson_Schedules with flag_break = 1", sum(1 for r in ls if truthy(r.get("flag_break")))))
+    st = data.get("Students")
+    if st:
+        rows.append(("Students with Name_First = Inst", sum(1 for r in st if (r.get("Name_First") or "").strip().lower() == "inst")))
+    lessons = data.get("Lessons")
+    if lessons:
+        if "Student" in lessons[0]:
+            rows.append(("Lessons whose Student text starts with 'Inst'",
+                         sum(1 for r in lessons if (r.get("Student") or "").strip().lower().startswith("inst"))))
+        if "flag_has_break" in lessons[0]:
+            rows.append(("Lessons with flag_has_break = 1", sum(1 for r in lessons if truthy(r.get("flag_has_break")))))
+    table(["Measure", "Rows"], rows)
+
+
+def section_makeup_replay(data):
+    h(2, "Make-up ledger replay vs stored counters (ADR-0003 rehearsal)")
+    st, out, ls = data.get("Students"), data.get("Lesson_Out"), data.get("Lesson_Schedules")
+    if not (st and out and ls):
+        line("Needs Students, Lesson_Out and Lesson_Schedules.")
+        return
+    for t, c in (("Lesson_Out", "Makeup_Type"), ("Lesson_Out", "flag_count"), ("Lesson_Schedules", "Lesson_MU_to_use"),
+                 ("Lesson_Schedules", "Lesson_MU_Amount")):
+        col(data[t], t, c)
+    # Issued: one credit per Lesson_Out row that counts (flag_count = 1, i.e. not flag_do_not_issue).
+    issued = defaultdict(Counter)
+    mt = Counter()
+    for r in out:
+        d = (r.get("Makeup_Type") or "").strip().upper()
+        mt[d or "(blank)"] += 1
+        if truthy(r.get("flag_count", "1")) and not truthy(r.get("flag_do_not_issue", "")):
+            issued[r.get("id_student")][d] += 1
+    # Redeemed: Lesson_Schedules rows with Lesson_MU_to_use set consume Lesson_MU_Amount (default 1) of that denomination.
+    redeemed = defaultdict(Counter)
+    use, amt = Counter(), Counter()
+    for r in ls:
+        d = (r.get("Lesson_MU_to_use") or "").strip().upper()
+        if not d:
+            continue
+        use[d] += 1
+        a = to_num(r.get("Lesson_MU_Amount", "")) or 1.0
+        amt[str(a)] += 1
+        redeemed[r.get("id_student")][d] += a
+    h(3, "Lesson_Out.Makeup_Type (upper-cased)")
+    table(["Denomination", "Rows"], mt.most_common())
+    h(3, "Lesson_Schedules.Lesson_MU_to_use (upper-cased) and Lesson_MU_Amount")
+    table(["Denomination", "Rows"], use.most_common())
+    table(["Amount", "Rows"], sorted(amt.items(), key=lambda kv: float(kv[0])))
+    line("Amounts other than 1 are the conversions: 2 SP for a PR lesson, 4 group for a PR, 0.5 PR for an SP lesson.")
+    line()
+    stored_cols = {"SP": "MU_SP_Total", "PR": "MU_PR_Total", "PM": "MU_PM_Total", "GR": "MU_GR_Total", "ST": "MU_ST_Total"}
+    # 1. FileMaker's own formula (DDR): MU_X_Total = Sum(Lesson_Out.flag_MU_X) - Sum(Lesson_Schedules.flag_MU_X),
+    #    a stored number re-evaluated only when Students.flag_update fires. Every flag is 0/1, so do-not-issue
+    #    rows still count as issued and a 2-for-1 conversion still counts as one redemption.
+    fm_issued, fm_redeemed = defaultdict(Counter), defaultdict(Counter)
+    for r in out:
+        for d in stored_cols:
+            if truthy(r.get(f"flag_MU_{d}", "")):
+                fm_issued[r.get("id_student")][d] += 1
+    for r in ls:
+        for d in stored_cols:
+            if truthy(r.get(f"flag_MU_{d}", "")):
+                fm_redeemed[r.get("id_student")][d] += 1
+    h(3, "Replay 1 — FileMaker's stored formula (flagged out rows minus flagged schedule rows)")
+    rows = []
+    for d, sc in stored_cols.items():
+        if sc not in st[0]:
+            continue
+        n = m = over = under = 0
+        for r in st:
+            sid = r.get("ID_Students")
+            stored = to_num(r.get(sc, "")) or 0.0
+            bal = float(fm_issued[sid][d] - fm_redeemed[sid][d])
+            if not (stored or bal):
+                continue
+            n += 1
+            if abs(stored - bal) < 1e-9:
+                m += 1
+            elif stored > bal:
+                over += 1
+            else:
+                under += 1
+        rows.append((d, n, m, over, under, f"{(100.0 * m / n):.0f}%" if n else "n/a"))
+    table(["Denomination", "Students with activity", "Stored = formula", "Stored > formula", "Stored < formula", "Match rate"], rows)
+    line("A miss here is a counter FileMaker never re-evaluated (or a script that wrote it directly): the stored value "
+         "is stale, not the ledger. This is the list the Scheduling & search gate classifies.")
+    line()
+    h(3, "Replay 2 — the ADR-0003 business rule (do-not-issue excluded, conversion amounts honoured)")
+    # Compare with stored counters, denomination by denomination.
+    rows = []
+    for d, sc in stored_cols.items():
+        if sc not in st[0]:
+            MISSING.append(("Students", sc))
+            continue
+        match_bal = match_issued = differ = stored_nonzero = 0
+        diffs = Counter()
+        for r in st:
+            sid = r.get("ID_Students")
+            stored = to_num(r.get(sc, "")) or 0.0
+            iss = float(issued[sid][d])
+            red = float(redeemed[sid][d])
+            bal = iss - red
+            if stored:
+                stored_nonzero += 1
+            if abs(stored - bal) < 1e-9:
+                match_bal += 1
+            elif abs(stored - iss) < 1e-9:
+                match_issued += 1
+            else:
+                differ += 1
+                diffs["stored > replayed balance" if stored > bal else "stored < replayed balance"] += 1
+        rows.append((d, stored_nonzero, match_bal, match_issued, differ,
+                     diffs["stored > replayed balance"], diffs["stored < replayed balance"]))
+    table(["Denomination", "Students with stored counter != 0", "Stored = issued - redeemed", "Stored = issued only",
+           "Neither", "of which stored > balance", "of which stored < balance"], rows)
+    line("Same comparison restricted to students with any activity in that denomination "
+         "(stored != 0, or an issue, or a redemption):")
+    line()
+    rows = []
+    for d, sc in stored_cols.items():
+        if sc not in st[0]:
+            continue
+        n = m = 0
+        for r in st:
+            sid = r.get("ID_Students")
+            stored = to_num(r.get(sc, "")) or 0.0
+            iss, red = float(issued[sid][d]), float(redeemed[sid][d])
+            if not (stored or iss or red):
+                continue
+            n += 1
+            if abs(stored - (iss - red)) < 1e-9:
+                m += 1
+        rows.append((d, n, m, n - m, f"{(100.0 * m / n):.0f}%" if n else "n/a"))
+    table(["Denomination", "Students with activity", "Replay matches stored", "Differs", "Match rate"], rows)
+    ad_out = Counter()
+    for r in out:
+        if (r.get("Makeup_Type") or "").strip().upper() == "AD":
+            ad_out["counted" if truthy(r.get("flag_count", "1")) and not truthy(r.get("flag_do_not_issue", "")) else "not counted"] += 1
+    if ad_out:
+        line(f"Lesson_Out rows of type AD (adults issue no credit per ADR-0003): {dict(ad_out)}")
+        line()
+    unk = sum(1 for r in st if to_num(r.get("MU_Unknown_Total", ""))) if "MU_Unknown_Total" in st[0] else "n/a"
+    old_mu = sum(1 for r in st if to_num(r.get("OLD_MU_REMAINING", ""))) if "OLD_MU_REMAINING" in st[0] else "n/a"
+    neg = sum(1 for r in st for sc in stored_cols.values() if sc in r and (to_num(r.get(sc, "")) or 0) < 0)
+    table(["Measure", "Students"], [
+        ("MU_Unknown_Total != 0", unk),
+        ("OLD_MU_REMAINING populated (balance carried from the previous migration)", old_mu),
+        ("Any stored MU_*_Total negative", neg),
+        ("Students with at least one counted Lesson_Out row", len([s for s in issued if sum(issued[s].values())])),
+        ("Students with at least one redemption row", len(redeemed)),
+    ])
+    line("Reading: 'Stored = issued - redeemed' means the six counters are balances the ledger can replay; "
+         "'Stored = issued only' means they count issues and redemptions live elsewhere; 'Neither' is the "
+         "reconciliation list the import must produce per student. This is the rehearsal, not the import's rule.")
+    if "Adult_Credit" in ls[0]:
+        nonblank = Counter((r.get("Adult_Credit") or "").strip() for r in ls if (r.get("Adult_Credit") or "").strip())
+        h(3, "Lesson_Schedules.Adult_Credit (ADR-0004 opening packs)")
+        table(["Measure", "Rows"], [("Rows with a non-blank Adult_Credit", sum(nonblank.values())),
+                                    ("Distinct values", len(nonblank))])
+        if nonblank:
+            table(["Value", "Rows"], nonblank.most_common(20))
+
+
+def section_pre2020(data):
+    h(2, "Pre-2020 Billing_Months: are amounts stamped on the row?")
+    bm = data.get("Billing_Months")
+    if not bm or not col(bm, "Billing_Months", "Year"):
+        return
+    by = defaultdict(Counter)
+    for r in bm:
+        try:
+            y = int(float(r["Year"]))
+        except ValueError:
+            continue
+        band = "< 2020" if y < 2020 else ">= 2020"
+        by[band]["rows"] += 1
+        for c in ("Monthly_Fee", "Rate_1", "Amount_Paid_1", "Cumulative_Balance"):
+            if c in r and to_num(r.get(c)) is not None:
+                by[band][f"{c} populated"] += 1
+    keys = ["rows", "Monthly_Fee populated", "Rate_1 populated", "Amount_Paid_1 populated", "Cumulative_Balance populated"]
+    table(["Year band"] + keys, [(b,) + tuple(by[b][k] for k in keys) for b in sorted(by)])
+    line("Billing_Rates has rows for 2020-2026 only; rows before 2020 must carry their own amounts or the history is unpriced.")
+
+
+# Free-text columns scanned (streaming, never loaded) for card-number-shaped digit runs
+# and for cells at Excel's 32,767-character limit (the export passed through .xlsx).
+TEXT_SCAN = {
+    "Families": ["Notes_General", "Referral_Notes", "Credit_Card_1_Exp_Date", "Credit_Card_2_Exp_Date"],
+    "Students": ["Notes_General", "Instructor_Notes", "Notes_Attendance", "Notes_Deck_Manager", "Notes_MU",
+                 "Referral_Notes", "FoundSetIDs_SMS", "sum_id_family"],
+    "Billing_Months": ["Payment_Notes"],
+    "Billing_Years": ["Notes"],
+    "Lesson_Attendance": ["Intructor_Notes_to_Office"],
+    "Lesson_Out": ["Notes"],
+    "Lesson_Schedules": ["Student_Notes", "import_Pool_Notes"],
+    "Waitlist": ["Notes", "Time_Notes"],
+    "Notes": ["Note"],
+    "Audits": ["Log"],
+    "Staff": ["Notes"],
+}
+_DIGIT_RUN = re.compile(r"(?<!\d)(?:\d[ -]?){12}\d{1,4}(?!\d)")
+
+
+def _luhn(digits):
+    total, alt = 0, False
+    for ch in reversed(digits):
+        n = int(ch)
+        if alt:
+            n *= 2
+            if n > 9:
+                n -= 9
+        total += n
+        alt = not alt
+    return total % 10 == 0
+
+
+def section_text_scan(folder):
+    h(2, "Free-text scan: card-number-shaped digit runs and truncated cells")
+    line("Counts only. A 'digit run' is 13-16 digits with optional spaces or dashes; Luhn-valid runs are the ones "
+         "that look like real card numbers. Truncated = cell length exactly 32,767, the .xlsx limit.")
+    line()
+    rows = []
+    for tname, columns in TEXT_SCAN.items():
+        path = find_file(folder, tname)
+        if not path:
+            rows.append((tname, ", ".join(columns), "file missing", "", "", "", ""))
+            continue
+        runs = luhn = trunc = cells = rows_hit = 0
+        with open(path, newline="", encoding="utf-8-sig") as fh:
+            reader = csv.DictReader(fh)
+            present = [c for c in columns if c in (reader.fieldnames or [])]
+            for r in reader:
+                hit = False
+                for c in present:
+                    v = r.get(c) or ""
+                    if not v:
+                        continue
+                    cells += 1
+                    if len(v) >= 32767:
+                        trunc += 1
+                    for m in _DIGIT_RUN.finditer(v):
+                        runs += 1
+                        hit = True
+                        if _luhn(re.sub(r"\D", "", m.group(0))):
+                            luhn += 1
+                if hit:
+                    rows_hit += 1
+        rows.append((tname, ", ".join(present) or "(none of the listed columns present)", cells, runs, luhn, rows_hit, trunc))
+    table(["Table", "Columns scanned", "Populated cells", "Digit runs", "Luhn-valid", "Rows with a run", "Truncated cells"], rows)
+
+
 # ---------- main ----------
 
 TABLES = ["Staff", "Families", "Students", "Billing_Months", "Billing_Years", "Lesson_Schedules",
@@ -473,15 +809,18 @@ TABLES = ["Staff", "Families", "Students", "Billing_Months", "Billing_Years", "L
 
 
 def main():
-    if len(sys.argv) != 2 or not os.path.isdir(sys.argv[1]):
+    if len(sys.argv) not in (2, 3) or not os.path.isdir(sys.argv[1]):
         sys.stderr.write(__doc__)
         sys.exit(2)
     folder = sys.argv[1]
+    label = sys.argv[2] if len(sys.argv) == 3 else os.path.basename(os.path.normpath(folder))
     data = {t: load(folder, t) for t in TABLES}
-    h(1, f"Data profile of live FileMaker export: {os.path.basename(os.path.normpath(folder))}")
+    h(1, f"Data profile of live FileMaker export: {label}")
     line(f"Generated {TODAY} by `scripts/profile_exports.py`. Aggregates only; source files are not committed.")
-    line("Sections: row counts, date ranges, active vs historical, instructor collisions, dual keys, "
-         "ALL-CAPS names, unknown values, payment volume. Paste the numbers the ticket asks for into its resolution.")
+    line("Sections: row counts, date ranges, active vs historical, instructor collisions, dual keys and orphans, "
+         "ALL-CAPS names, unknown values, payment volume, pre-2020 billing rows, placeholder rows, the make-up "
+         "ledger replay (FileMaker's formula and the ADR-0003 rule), and a free-text scan for card-number-shaped "
+         "digit runs and truncated cells. Paste the numbers the ticket asks for into its resolution.")
     section_counts(data)
     section_date_ranges(data)
     section_activity(data)
@@ -490,6 +829,10 @@ def main():
     section_caps(data)
     section_nulls(data)
     section_money(data)
+    section_pre2020(data)
+    section_placeholders(data)
+    section_makeup_replay(data)
+    section_text_scan(folder)
     if MISSING:
         h(2, "Missing files or columns (facts skipped)")
         table(["Table", "Column"], sorted(set(MISSING)))
