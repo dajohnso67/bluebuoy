@@ -4,13 +4,13 @@ _Prepared 2026-09-16 from the open issues in `dajohnso67/bluebuoy`._
 
 ## Executive Snapshot
 
-The Blue Buoy migration is still in its decision phase, and this week removed its biggest unknown: the live FileMaker data was exported and profiled, and the notes and staff answers gathered during that export are now folded into the plan. Nine of the eighteen working tickets are closed, with four architecture decisions recorded and the phase order settled around the December 2026 closure. The export answered the questions it was meant to and raised three new ones: about 5,600 students in the billing history no longer exist in the live file, the make-up credit balances FileMaker shows staff are wrong for roughly three in four students who have any, and the adult class balances staff manage by hand are recorded nowhere. Ownership also settled how phone payments will work without staff ever handling a card. Overall risk is moderate and rising with time. December training and January go-live remain achievable, but the staff question sheet has now been ready and undelivered for nine days.
+The Blue Buoy migration is still in its decision phase, and this week removed its biggest unknown: the live FileMaker data was exported and profiled, and the notes and staff answers gathered during that export are now folded into the plan. Ten of the eighteen working tickets are closed, with five architecture decisions recorded and the phase order settled around the December 2026 closure. The export answered the questions it was meant to and raised three new ones: about 5,600 students in the billing history no longer exist in the live file, the make-up credit balances FileMaker shows staff are wrong for roughly three in four students who have any, and the adult class balances staff manage by hand are recorded nowhere. Ownership also settled how phone payments will work without staff ever handling a card. Overall risk is moderate and rising with time. December training and January go-live remain achievable, but the staff question sheet has now been ready and undelivered for nine days.
 
 | | Count |
 |---|---|
-| Working tickets closed | 9 |
+| Working tickets closed | 10 |
 | Open, waiting on staff or office access | 4 |
-| Open, ready for a decision now | 2 |
+| Open, ready for a decision now | 1 |
 | Open, research under way | 1 |
 | Open, blocked by another open ticket | 2 (archive decision, payment-request flow) |
 | Weeks to the December closure | about 11 |
@@ -25,7 +25,7 @@ The Blue Buoy migration is still in its decision phase, and this week removed it
 **Data integrity and migration correctness**
 
 - **The archive file is now a money question, not a housekeeping one.** About 5,600 students referenced by 215,000 billing rows, 1,400 of them carrying real payments, are absent from the live file. The ten-year-idle archive is the only place they can be. A one-hour pull of two tables from that file tells us how many it actually holds; that pull is the only thing still blocking the archive decision.
-- **Make-up credit balances cannot be trusted as they stand.** FileMaker stores each student's balance as a number it recalculates only when a trigger fires. Replaying its own formula from the underlying records reproduces the stored balance for just 14 to 31 percent of students with any credits. The new system will rebuild balances from the records, so ownership must decide which number is the truth at go-live and what families and staff are told when a balance changes. This is a trust decision, not a technical one.
+- **Make-up credit balances cannot be trusted as they stand, and the fix is decided.** FileMaker stores each student's balance as a number it recalculates only when a trigger fires, and replaying its own formula reproduces the stored balance for just 14 to 31 percent of students with any credits. Ownership decided the new system rebuilds every balance from the records and then reconciles each one to the number staff see today, so no family's balance changes at go-live and every difference is visible and reversible. The office will review the differences for families likely to ask this year; the rest are flagged and reviewed when the family next books.
 - **Adult class balances exist only in staff's heads.** The one field that was thought to hold them is empty on every row. Every adult enrollment will land on a review list at import for the office to confirm the remaining lessons. Small in number, but it needs staff time, not engineering time.
 
 **Card handling and payments**
@@ -45,17 +45,17 @@ The Blue Buoy migration is still in its decision phase, and this week removed it
 
 ## Strategic Resolution Roadmap
 
-**Recommended path: deliver the question sheet now, finish the one small pull, and hold one decision session with ownership on balances.** The engineering side is ready on every ticket, and the export has turned the largest risks into specific, answerable questions.
+**Recommended path: deliver the question sheet now, finish the one small pull, and take the two decisions that are ready.** The engineering side is ready on every ticket, and the export has turned the largest risks into specific, answerable questions.
 
 1. **This week, send the question sheet.** Section A to deck staff and the FileMaker administrator, Section B to the billing team, Section C to office staff. Ask for Section A back within one week and the rest within two. Its return also closes the search-parity gap.
 2. **This week, one more hour in FileMaker.** Export the six-row closure calendar table and the family and student tables from the archive file, this time in a format that does not truncate long notes. That single pull unblocks the archive decision and tells us where the 5,600 missing students went.
-3. **Within two weeks, a decision session on make-up balances and legacy schedule rows.** Ownership chooses whether go-live balances come from FileMaker's displayed numbers or from the rebuilt ledger, who reviews the differences, and how families are told; and confirms what held, break and placeholder rows become at import. This feeds question batch 2, which also carries the Adult no-show policy, the Christmas make-up rule, and the offer and closure questions raised this week.
+3. **Within two weeks, a decision on legacy schedule rows.** The make-up balance decision is made; what remains is confirming what held, break and placeholder rows become at import. This feeds question batch 2, which also carries the Adult no-show policy, the Christmas make-up rule, and the offer and closure questions raised this week.
 4. **Within two weeks, settle the payment-link flow.** Once the gateway research lands, ownership confirms who may create and send a payment request and whether billing reviews it first.
 5. **Within four weeks, one office visit for billing paperwork.** One real charter invoice, two QuickBooks screens, two portal walkthroughs, and the payer list. Not December-critical, but on the path to full cutover.
 
 **Trade-offs considered**
 
-- **Carry FileMaker's displayed make-up balances across unchanged.** Preserves what staff and families have been told, but bakes several thousand known-wrong numbers into the new ledger as if they were audited. Recommended only as an opening adjustment with the difference recorded, never as the silent truth.
+- **Carry FileMaker's displayed make-up balances across unchanged.** Rejected in favour of rebuilding from the records and reconciling to the displayed number with the difference recorded, so the known-wrong numbers are visible instead of baked in.
 - **Start the import rehearsal before the archive pull.** Reasonable: the live data is enough to build against, and the archive changes only how the missing students are handled. The pull is an hour of one person's time, so the rehearsal should not wait long.
 - **Change the payment gateway at cutover.** Rejected. It would force every family to re-enter a card. Keeping Authorize.Net carries the card vault across untouched, and the payment-link design rides the same gateway.
 

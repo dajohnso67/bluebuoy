@@ -85,12 +85,12 @@
 <section id="snapshot">
   <div class="sec-head"><span class="n">01</span><h2>Executive Snapshot</h2></div>
   <span class="risk">Overall risk: moderate, rising with time</span>
-  <p>The Blue Buoy migration is still in its decision phase, and this week removed its biggest unknown: the live FileMaker data was exported and profiled, and the notes and staff answers gathered during that export are now folded into the plan. Nine of the eighteen working tickets are closed, with four architecture decisions recorded and the phase order settled around the December 2026 closure.</p>
+  <p>The Blue Buoy migration is still in its decision phase, and this week removed its biggest unknown: the live FileMaker data was exported and profiled, and the notes and staff answers gathered during that export are now folded into the plan. Ten of the eighteen working tickets are closed, with five architecture decisions recorded and the phase order settled around the December 2026 closure.</p>
   <p>The export answered the questions it was meant to and raised three new ones: about 5,600 students in the billing history no longer exist in the live file, the make-up credit balances FileMaker shows staff are wrong for roughly three in four students who have any, and the adult class balances staff manage by hand are recorded nowhere. Ownership also settled how phone payments will work without staff ever handling a card. December training and January go-live remain achievable, but the staff question sheet has now been ready and undelivered for nine days.</p>
   <div class="tiles">
-    <div class="tile"><div class="v ok">9</div><div class="l">Working tickets closed</div></div>
+    <div class="tile"><div class="v ok">10</div><div class="l">Working tickets closed</div></div>
     <div class="tile"><div class="v warn">4</div><div class="l">Open, waiting on staff or office access</div></div>
-    <div class="tile"><div class="v">2</div><div class="l">Open, ready for a decision now</div></div>
+    <div class="tile"><div class="v">1</div><div class="l">Open, ready for a decision now</div></div>
     <div class="tile"><div class="v">1</div><div class="l">Open, research under way</div></div>
     <div class="tile"><div class="v warn">2</div><div class="l">Open, blocked by another open ticket</div></div>
     <div class="tile"><div class="v">~11</div><div class="l">Weeks to the December closure</div></div>
@@ -109,7 +109,7 @@
   <h3>Data integrity and migration correctness</h3>
   <ul>
     <li><b>The archive file is now a money question, not a housekeeping one.</b> About 5,600 students referenced by 215,000 billing rows, 1,400 of them carrying real payments, are absent from the live file. The ten-year-idle archive is the only place they can be. A one-hour pull of two tables from that file tells us how many it actually holds; that pull is the only thing still blocking the archive decision.</li>
-    <li><b>Make-up credit balances cannot be trusted as they stand.</b> FileMaker stores each student's balance as a number it recalculates only when a trigger fires. Replaying its own formula from the underlying records reproduces the stored balance for just 14 to 31 percent of students with any credits. The new system will rebuild balances from the records, so ownership must decide which number is the truth at go-live and what families and staff are told when a balance changes. This is a trust decision, not a technical one.</li>
+    <li><b>Make-up credit balances cannot be trusted as they stand, and the fix is decided.</b> FileMaker stores each student's balance as a number it recalculates only when a trigger fires, and replaying its own formula reproduces the stored balance for just 14 to 31 percent of students with any credits. Ownership decided the new system rebuilds every balance from the records and then reconciles each one to the number staff see today, so no family's balance changes at go-live and every difference is visible and reversible. The office will review the differences for families likely to ask this year; the rest are flagged and reviewed when the family next books.</li>
     <li><b>Adult class balances exist only in staff's heads.</b> The one field that was thought to hold them is empty on every row. Every adult enrollment will land on a review list at import for the office to confirm the remaining lessons. Small in number, but it needs staff time, not engineering time.</li>
   </ul>
 
@@ -135,18 +135,18 @@
 <section id="roadmap">
   <div class="sec-head"><span class="n">03</span><h2>Strategic Resolution Roadmap</h2></div>
 
-  <div class="path"><p><b>Recommended path: deliver the question sheet now, finish the one small pull, and hold one decision session with ownership on balances.</b> The engineering side is ready on every ticket, and the export has turned the largest risks into specific, answerable questions.</p></div>
+  <div class="path"><p><b>Recommended path: deliver the question sheet now, finish the one small pull, and take the two decisions that are ready.</b> The engineering side is ready on every ticket, and the export has turned the largest risks into specific, answerable questions.</p></div>
   <ol>
     <li><b>This week, send the question sheet.</b> Section A to deck staff and the FileMaker administrator, Section B to the billing team, Section C to office staff. Ask for Section A back within one week and the rest within two. Its return also closes the search-parity gap.</li>
     <li><b>This week, one more hour in FileMaker.</b> Export the six-row closure calendar table and the family and student tables from the archive file, this time in a format that does not truncate long notes. That single pull unblocks the archive decision and tells us where the 5,600 missing students went.</li>
-    <li><b>Within two weeks, a decision session on make-up balances and legacy schedule rows.</b> Ownership chooses whether go-live balances come from FileMaker's displayed numbers or from the rebuilt ledger, who reviews the differences, and how families are told; and confirms what held, break and placeholder rows become at import. This feeds question batch 2, which also carries the Adult no-show policy, the Christmas make-up rule, and the offer and closure questions raised this week.</li>
+    <li><b>Within two weeks, a decision on legacy schedule rows.</b> The make-up balance decision is made; what remains is confirming what held, break and placeholder rows become at import. This feeds question batch 2, which also carries the Adult no-show policy, the Christmas make-up rule, and the offer and closure questions raised this week.</li>
     <li><b>Within two weeks, settle the payment-link flow.</b> Once the gateway research lands, ownership confirms who may create and send a payment request and whether billing reviews it first.</li>
     <li><b>Within four weeks, one office visit for billing paperwork.</b> One real charter invoice, two QuickBooks screens, two portal walkthroughs, and the payer list. Not December-critical, but on the path to full cutover.</li>
   </ol>
 
   <h3>Trade-offs considered</h3>
   <ul>
-    <li><b>Carry FileMaker's displayed make-up balances across unchanged.</b> Preserves what staff and families have been told, but bakes several thousand known-wrong numbers into the new ledger as if they were audited. Recommended only as an opening adjustment with the difference recorded, never as the silent truth.</li>
+    <li><b>Carry FileMaker's displayed make-up balances across unchanged.</b> Rejected in favour of rebuilding from the records and reconciling to the displayed number with the difference recorded, so the known-wrong numbers are visible instead of baked in.</li>
     <li><b>Start the import rehearsal before the archive pull.</b> Reasonable: the live data is enough to build against, and the archive changes only how the missing students are handled. The pull is an hour of one person's time, so the rehearsal should not wait long.</li>
     <li><b>Change the payment gateway at cutover.</b> Rejected. It would force every family to re-enter a card. Keeping Authorize.Net carries the card vault across untouched, and the payment-link design rides the same gateway.</li>
   </ul>
